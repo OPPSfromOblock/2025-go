@@ -75,6 +75,183 @@
     box-shadow:12px 0 30px rgba(15,23,42,0.08);
     color:var(--text);
   }
+
+  /* Dark mode overrides (sidebar + search bar + main UI) */
+  body.dark-mode{
+    background:#020617;
+    color:#f9fafb;
+  }
+  body.dark-mode::before{
+    content:"";
+    position:fixed;
+    inset:-20%;
+    background:radial-gradient(circle at top,#7f1d1d 0%,transparent 60%);
+    opacity:0.45;
+    pointer-events:none;
+    z-index:-1;
+  }
+
+  body.dark-mode .sidebar{
+    background:#020617 !important;
+    color:#f9fafb;
+    border-right:1px solid rgba(15,23,42,0.9);
+    box-shadow:12px 0 30px rgba(15,23,42,0.9);
+  }
+  body.dark-mode .sidebar .muted{
+    color:#9ca3af;
+  }
+  body.dark-mode .logo{
+    background:#020617;
+    color:#fecaca;
+    border-color:#ef4444;
+    box-shadow:0 8px 18px rgba(0,0,0,0.7);
+  }
+  body.dark-mode nav button{
+    color:#f9fafb;
+  }
+  body.dark-mode nav button:hover{
+    background:rgba(31,41,55,1);
+  }
+  body.dark-mode nav button.active{
+    background:linear-gradient(90deg,rgba(248,113,113,0.35),rgba(15,23,42,1));
+    color:#fecaca;
+  }
+
+  /* Cards / content */
+  body.dark-mode .card{
+    background:#020617;
+    border-color:rgba(31,41,55,1);
+    box-shadow:0 18px 40px rgba(0,0,0,0.7);
+    color:#f9fafb;
+  }
+  body.dark-mode .muted{
+    color:#d1d5db;
+  }
+
+  /* Headings */
+  body.dark-mode h1,
+  body.dark-mode h2,
+  body.dark-mode h3,
+  body.dark-mode h4{
+    color:#f9fafb;
+  }
+  body.dark-mode .quote-card{
+    background:#020617;
+    border-color:#ef4444;
+  }
+  body.dark-mode .stat-card{
+    background:linear-gradient(135deg,#020617,#111827);
+    border-color:rgba(31,41,55,1);
+  }
+
+  /* Buttons */
+  body.dark-mode .btn{
+    background:#111827;
+    color:#f9fafb;
+    border-color:rgba(55,65,81,1);
+  }
+  body.dark-mode .btn:hover{
+    background:#1f2937;
+    box-shadow:0 4px 10px rgba(0,0,0,0.8);
+  }
+  body.dark-mode .btn.primary{
+    color:#fef2f2;
+    box-shadow:0 8px 18px rgba(248,113,113,0.8);
+  }
+  body.dark-mode .btn.ghost{
+    background:transparent;
+    border:1px solid rgba(75,85,99,1);
+    color:#f9fafb;
+  }
+
+  /* Inputs & selects */
+  body.dark-mode input[type="text"],
+  body.dark-mode input[type="email"],
+  body.dark-mode select{
+    background:#020617;
+    color:#f9fafb;
+    border-color:rgba(55,65,81,1);
+  }
+  body.dark-mode input[type="text"]::placeholder,
+  body.dark-mode input[type="email"]::placeholder{
+    color:#9ca3af;
+  }
+  body.dark-mode input[type="text"]:focus,
+  body.dark-mode input[type="email"]:focus,
+  body.dark-mode select:focus{
+    background:#020617;
+    box-shadow:0 0 0 1px rgba(248,113,113,0.7);
+  }
+  body.dark-mode .pwbox input{
+    background:#020617;
+    color:#f9fafb;
+    border-color:rgba(55,65,81,1);
+  }
+
+  /* Matches / lists */
+  body.dark-mode .match-card{
+    background:#020617;
+    border-color:rgba(31,41,55,1);
+    box-shadow:0 10px 24px rgba(0,0,0,0.8);
+    color:#f9fafb;
+  }
+  body.dark-mode .match-card .muted{
+    color:#f9fafb;
+  }
+  body.dark-mode .match-card:hover{
+    background:#111827;
+  }
+
+  /* Score sheet & modals */
+  body.dark-mode #scoreSheet{
+    background:#020617;
+    border-color:rgba(31,41,55,1);
+    box-shadow:0 24px 80px rgba(0,0,0,0.9);
+  }
+  body.dark-mode .modal{
+    background:#020617;
+    border-color:rgba(31,41,55,1);
+    box-shadow:0 24px 70px rgba(0,0,0,0.9);
+  }
+  body.dark-mode .pwbox{
+    background:#020617;
+    border-color:rgba(31,41,55,1);
+    box-shadow:0 24px 70px rgba(0,0,0,0.9);
+  }
+
+  /* Logs / team blocks */
+  body.dark-mode .teamBlock{
+    background:#020617;
+    border-color:rgba(31,41,55,1);
+  }
+  body.dark-mode .log{
+    background:#020617;
+    border-color:rgba(31,41,55,1);
+    color:#e5e7eb;
+  }
+
+  /* Pagination buttons */
+  body.dark-mode .pagination button{
+    background:#020617;
+    border-color:rgba(55,65,81,1);
+    color:#e5e7eb;
+  }
+  body.dark-mode .pagination button:hover{
+    background:#111827;
+    color:#fef2f2;
+    box-shadow:0 4px 10px rgba(0,0,0,0.8);
+  }
+
+  /* Search bar (matches) */
+  body.dark-mode #searchMatches{
+    background:#020617;
+    color:#f9fafb;
+    border-color:rgba(55,65,81,1);
+  }
+  body.dark-mode #searchMatches::placeholder{
+    color:#9ca3af;
+  }
+
   .hamburger-btn{
     display:none;
     border:0;
@@ -612,6 +789,14 @@
       </div>
     </div>
 
+    <!-- Dark mode toggle -->
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(229,231,235,1);font-size:13px;color:var(--muted);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <span>Dark mode</span>
+        <button id="toggleDarkMode" class="btn" style="padding:6px 10px;font-size:12px;">Off</button>
+      </div>
+    </div>
+
   </nav>
 </div>
 
@@ -621,7 +806,7 @@
       <button id="hamburgerBtn" class="hamburger-btn" aria-label="Toggle navigation">☰</button>
       <h1>GO 2025 — Scoring</h1>
     </div>
-    <div class="muted">Red & White palette • Realtime DB • SPA</div>
+    <div class="muted">• Realtime DB • SPA</div>
   </header>
 
   <div style="height:14px"></div>
@@ -635,7 +820,7 @@
         </div>
         <h2 class="home-title">
           Realtime scoring,<br/>
-          <span class="gradient-text">dark neon control room</span>
+          <span class="gradient-text"></span>
         </h2>
         <p class="home-subtitle">
           Track every point from the arena with a fast, tournament-ready scoring system for Gurukul Olympics 2025.
@@ -690,6 +875,8 @@
         <select id="filterSportScoring" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)"><option value="all">All</option></select>
         <label style="font-size:13px;color:var(--muted)">Age</label>
         <select id="filterAgeScoring" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)"><option value="all">All</option></select>
+        <div style="flex:1"></div>
+        <input id="searchScoring" placeholder="Search team, sport..." style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)"/>
       </div>
 
       <div id="scSchedule" style="margin-top:14px"></div>
@@ -850,11 +1037,27 @@
     </div>
   </div>
 
-  <div>
-    <h4 style="margin:6px 0">Event Log</h4>
-    <div id="eventLog" class="log"></div>
+  <div class="event-log-section" style="margin-top:4px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <h4 style="margin:6px 0">Event Log</h4>
+      <button id="toggleEventLog" class="btn ghost" style="padding:4px 10px;font-size:12px;">Show events</button>
+    </div>
+    <div id="eventLogWrapper" style="margin-top:6px;display:none;">
+      <div id="eventLog" class="log"></div>
+    </div>
   </div>
 
+</div>
+
+<!-- Match info overlay -->
+<div class="overlay" id="matchInfoOverlay" style="display:none">
+  <div class="pwbox card" style="text-align:left;max-width:520px">
+    <h2 id="matchInfoTitle" style="margin-bottom:8px;color:var(--accent)">Match details</h2>
+    <div id="matchInfoMeta" class="muted" style="font-size:13px;margin-bottom:10px"></div>
+    <div id="matchInfoContent" style="font-size:14px;line-height:1.5"></div>
+    <div style="height:12px"></div>
+    <div style="text-align:right"><button id="matchInfoClose" class="btn ghost">Close</button></div>
+  </div>
 </div>
 
 <div class="overlay" id="authOverlay" style="display:none">
@@ -947,6 +1150,13 @@ let localSessionRole = null; // used when bypass code grants session role
 const btnShowAuth = document.getElementById('btnShowAuth');
 const authOverlay = document.getElementById('authOverlay');
 const authClose = document.getElementById('authClose');
+
+// Match info overlay elements
+const matchInfoOverlay = document.getElementById('matchInfoOverlay');
+const matchInfoTitle = document.getElementById('matchInfoTitle');
+const matchInfoMeta = document.getElementById('matchInfoMeta');
+const matchInfoContent = document.getElementById('matchInfoContent');
+const matchInfoClose = document.getElementById('matchInfoClose');
 const tabRegister = document.getElementById('tabRegister');
 const tabLogin = document.getElementById('tabLogin');
 
@@ -978,11 +1188,46 @@ const userEmailEl = document.getElementById('userEmail');
 const navButtons = document.querySelectorAll('nav button[data-tab], nav button');
 const sidebarEl = document.querySelector('.sidebar');
 const hamburgerBtn = document.getElementById('hamburgerBtn');
+const toggleDarkModeBtn = document.getElementById('toggleDarkMode');
+
 if(hamburgerBtn && sidebarEl){
   hamburgerBtn.addEventListener('click', ()=>{
     sidebarEl.classList.toggle('mobile-open');
   });
+
+  // Close mobile sidebar when clicking outside it
+  document.addEventListener('click', (e)=>{
+    if(window.innerWidth > 900) return; // desktop: ignore
+    if(!sidebarEl.classList.contains('mobile-open')) return;
+    const target = e.target;
+    if(sidebarEl.contains(target) || hamburgerBtn.contains(target)) return;
+    sidebarEl.classList.remove('mobile-open');
+  });
 }
+
+// Simple dark mode toggle (sidebar + search bar)
+function setDarkMode(isDark){
+  if(isDark){
+    document.body.classList.add('dark-mode');
+    if(toggleDarkModeBtn) toggleDarkModeBtn.textContent = 'On';
+  } else {
+    document.body.classList.remove('dark-mode');
+    if(toggleDarkModeBtn) toggleDarkModeBtn.textContent = 'Off';
+  }
+}
+
+(function initDarkMode(){
+  const saved = (localStorage.getItem('go_darkMode') === '1');
+  setDarkMode(saved);
+  if(toggleDarkModeBtn){
+    toggleDarkModeBtn.addEventListener('click', ()=>{
+      const current = document.body.classList.contains('dark-mode');
+      const next = !current;
+      setDarkMode(next);
+      localStorage.setItem('go_darkMode', next ? '1' : '0');
+    });
+  }
+})();
 
 const usersTabBtn = document.querySelector('nav button[data-tab="users"]');
 const pendingList = document.getElementById('pendingList');
@@ -1110,6 +1355,9 @@ window.removeWhitelist = async function(id){
 */
 btnShowAuth.addEventListener('click', ()=> { authOverlay.style.display='flex'; tabRegister.click(); });
 authClose.addEventListener('click', ()=> { authOverlay.style.display='none'; });
+if(matchInfoClose && matchInfoOverlay){
+  matchInfoClose.addEventListener('click', ()=> { matchInfoOverlay.style.display='none'; });
+}
 
 // Auth tabs
 tabRegister.addEventListener('click', ()=> { tabRegister.classList.add('primary'); tabLogin.classList.remove('primary'); registerForm.style.display='block'; loginForm.style.display='none'; });
@@ -1525,6 +1773,15 @@ rtdb.ref('matches').on('value', snap=>{
   renderLiveList(lastMatchSnapshot);
 });
 
+// Live search for scoring tab
+const searchScoringInput = document.getElementById('searchScoring');
+if(searchScoringInput){
+  searchScoringInput.addEventListener('input', ()=>{
+    scoringPage = 1;
+    renderScoringList(lastMatchSnapshot);
+  });
+}
+
 /* Pagination & render helpers */
 const PAGE_SIZE = 10;
 let scoringPage = 1;
@@ -1669,20 +1926,23 @@ function makeMatchCard(matchObj, matchId, section){
   return el;
 }
 
-// Simple info popup for Matches tab
+// Simple info popup for Matches tab (uses overlay)
 function showMatchInfo(matchId){
   const m = lastMatchSnapshot[matchId];
   if(!m){ alert('Match not found'); return; }
+  if(!matchInfoOverlay || !matchInfoTitle || !matchInfoMeta || !matchInfoContent) return;
+
   const sportLabel = SPORT_LABEL[m.sport] || m.sport;
   const ageLabel = AGE_LABEL[m.age] || m.age;
   const scoreA = m.scoreA || 0;
   const scoreB = m.scoreB || 0;
 
-  let info = '';
-  info += `${sportLabel} — ${ageLabel}\n`;
-  info += `${m.teamA} vs ${m.teamB}\n`;
-  info += `Status: ${m.status || ''}\n`;
-  info += `Score: ${scoreA} - ${scoreB}\n`;
+  // Title and basic meta
+  matchInfoTitle.innerText = `${sportLabel} — ${ageLabel}`;
+  matchInfoMeta.innerText = `${m.teamA} vs ${m.teamB} • ${m.status || ''}`;
+
+  const lines = [];
+  lines.push(`<div><strong>Score:</strong> ${scoreA} - ${scoreB}</div>`);
 
   // Volleyball sets summary, if available
   if(m.sport === 'volleyball' && Array.isArray(m.volleyballSets) && m.volleyballSets.length > 0){
@@ -1693,7 +1953,7 @@ function showMatchInfo(matchId){
       if(a > b) setsAWon++;
       else if(b > a) setsBWon++;
     });
-    info += `Sets: ${setsAWon}-${setsBWon} (A-B)\\n`;
+    lines.push(`<div><strong>Sets:</strong> ${setsAWon}-${setsBWon} (A-B)</div>`);
   }
 
   // Sport-agnostic stats like fouls / penalties (if present)
@@ -1703,21 +1963,23 @@ function showMatchInfo(matchId){
     const pensA  = m.stats.penaltiesA || 0;
     const pensB  = m.stats.penaltiesB || 0;
     if(foulsA || foulsB){
-      info += `Fouls: ${foulsA}-${foulsB} (A-B)\\n`;
+      lines.push(`<div><strong>Fouls:</strong> ${foulsA}-${foulsB} (A-B)</div>`);
     }
     if(pensA || pensB){
-      info += `Penalties: ${pensA}-${pensB} (A-B)\\n`;
+      lines.push(`<div><strong>Penalties:</strong> ${pensA}-${pensB} (A-B)</div>`);
     }
   }
 
   // Event log (e.g., fouls, scores etc.)
   const events = m.events || [];
   if(events.length){
-    info += '\\nEvents (latest first):\\n';
-    events.slice(0, 15).forEach(ev=>{ info += `- ${ev}\\n`; });
+    const items = events.slice(0, 15).map(ev=>`<li>${escapeHtml(ev)}</li>`).join('');
+    lines.push(`<div style="margin-top:8px"><strong>Events (latest first):</strong></div>`);
+    lines.push(`<ul style="margin:4px 0 0 16px;padding:0;font-size:13px;">${items}</ul>`);
   }
 
-  alert(info);
+  matchInfoContent.innerHTML = lines.join('');
+  matchInfoOverlay.style.display = 'flex';
 }
 
 function applyFiltersToMatch(matchObj, section){
@@ -1728,6 +1990,17 @@ function applyFiltersToMatch(matchObj, section){
 
   if(sportFilter !== 'all' && matchObj.sport !== sportFilter) return false;
   if(ageFilter !== 'all' && matchObj.age !== ageFilter) return false;
+
+  // Scoring tab search
+  if(section==='scoring'){
+    const q = (document.getElementById('searchScoring')||{value:''}).value.toLowerCase();
+    if(q){
+      const hay = `${matchObj.teamA} ${matchObj.teamB} ${matchObj.sport} ${matchObj.age}`.toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+  }
+
+  // Matches tab filters (view + search)
   if(section==='matches'){
     const viewFilter = window.matchesViewFilter || 'all';
     if(viewFilter==='live' && matchObj.status!=='live') return false;
@@ -1846,7 +2119,8 @@ function renderLiveList(data){
     const el = document.createElement('div'); el.className='match-card';
     el.innerHTML = `<div><div style=\"font-weight:900\">${SPORT_LABEL[m.sport]||m.sport}</div><div class=\"muted\" style=\"font-size:13px\">${m.teamA} vs ${m.teamB}</div></div>
                     <div style=\"text-align:right\"><div style=\"font-weight:900;font-size:22px\">${m.scoreA} - ${m.scoreB}</div><div class=\"muted\" style=\"font-size:12px\">${new Date(m.startedAt).toLocaleTimeString()} </div></div>`;
-    // Live tab is fully read-only: cards are display-only, no click action
+    // Live tab is read-only but allows viewing details via the info overlay
+    el.addEventListener('click', ()=> showMatchInfo(id));
     liveList.appendChild(el);
   });
 
@@ -2135,7 +2409,7 @@ function advanceVolleyballSet(){
     sets.push({ set: currentSetNumber, scoreA, scoreB });
     match.volleyballSets = sets;
     match.currentSetNumber = currentSetNumber + 1;
-
+    
     match.events = match.events || [];
     match.events.unshift(`${(new Date()).toLocaleTimeString()} — End of set ${currentSetNumber}: ${scoreA} - ${scoreB}`);
 
@@ -2155,6 +2429,17 @@ function advanceVolleyballSet(){
 // Wire the Next Set button once
 const btnNextSetEl = document.getElementById('btnNextSet');
 if(btnNextSetEl) btnNextSetEl.addEventListener('click', advanceVolleyballSet);
+
+// Collapsible event log in score sheet
+const eventLogWrapperEl = document.getElementById('eventLogWrapper');
+const toggleEventLogBtn = document.getElementById('toggleEventLog');
+if(eventLogWrapperEl && toggleEventLogBtn){
+  toggleEventLogBtn.addEventListener('click', ()=>{
+    const isHidden = !eventLogWrapperEl.style.display || eventLogWrapperEl.style.display === 'none';
+    eventLogWrapperEl.style.display = isHidden ? 'block' : 'none';
+    toggleEventLogBtn.textContent = isHidden ? 'Hide events' : 'Show events';
+  });
+}
 
 // Taekwondo KO handler
 function applyKnockout(side){
