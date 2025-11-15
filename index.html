@@ -1326,12 +1326,20 @@ async function refreshUsersLists(){
   else whitelistList.innerHTML = wSnap.docs.map(d=>{
     const data = d.data();
     const em = escapeHtml(data.email || d.id);
-    const role = escapeHtml(data.role || 'user');
-    return `<div style="margin:6px 0;padding:8px;background:#f4f4f4;border-radius:6px;display:flex;justify-content:space-between;align-items:center">
-      <div style="font-weight:800">${em} <div style="font-size:12px;color:#666">${role}</div></div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <div style="font-size:12px;padding:6px;border-radius:6px;background:rgba(0,0,0,0.04)">${role}</div>
-        <button class="btn danger" onclick="removeWhitelist('${d.id}')">Remove</button>
+    const roleRaw = data.role || 'user';
+    const role = escapeHtml(roleRaw);
+    const idSafe = d.id;
+    return `<div style="margin:6px 0;padding:8px;background:#f4f4f4;border-radius:6px;display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <div style="font-weight:800">${em}</div>
+      <div style="display:flex;gap:8px;align-items:center;font-size:12px">
+        <span class="muted">Role:</span>
+        <select id="wlRole-${idSafe}" style="padding:4px 6px;border-radius:6px;border:1px solid rgba(0,0,0,0.06);font-size:12px">
+          <option value="user" ${roleRaw==='user'?'selected':''}>user</option>
+          <option value="teacher" ${roleRaw==='teacher'?'selected':''}>teacher</option>
+          <option value="admin" ${roleRaw==='admin'?'selected':''}>admin</option>
+        </select>
+        <button class="btn" style="padding:4px 10px;font-size:12px" onclick="updateWhitelistRole('${idSafe}')">Update</button>
+        <button class=\"btn danger\" onclick=\"removeWhitelist('${idSafe}')\">Remove</button>
       </div>
     </div>`;
   }).join('');
@@ -1359,6 +1367,18 @@ window.rejectUser = async function(id){
 };
 window.removeWhitelist = async function(id){
   try{ await db.collection('registeredUsers').doc(id).delete(); await refreshUsersLists(); }catch(e){ console.error(e); alert('Failed'); }
+};
+window.updateWhitelistRole = async function(id){
+  try{
+    const select = document.getElementById(`wlRole-${id}`);
+    if(!select){ alert('Role selector not found'); return; }
+    const newRole = select.value || 'user';
+    const docRef = db.collection('registeredUsers').doc(id);
+    const snap = await docRef.get();
+    if(!snap.exists){ alert('User not found'); return; }
+    await docRef.update({ role: newRole });
+    await refreshUsersLists();
+  }catch(e){ console.error(e); alert('Failed to update role'); }
 };
 
 /* =========================
