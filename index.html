@@ -1304,11 +1304,20 @@ async function refreshUsersLists(){
   if(pSnap.empty) pendingList.innerHTML = '<div class="muted">No pending users</div>';
   else pendingList.innerHTML = pSnap.docs.map(d=>{
     const em = escapeHtml(d.data().email||d.id);
-    return `<div style="margin:6px 0;padding:8px;background:#f8f8f8;border-radius:6px;display:flex;justify-content:space-between;align-items:center">
+    const idSafe = d.id;
+    return `<div style="margin:6px 0;padding:8px;background:#f8f8f8;border-radius:6px;display:flex;justify-content:space-between;align-items:center;gap:8px">
       <div style="font-weight:800">${em}</div>
-      <div style="display:flex;gap:8px">
-        <button class="btn primary" onclick="approveUser('${d.id}')">Approve</button>
-        <button class="btn danger" onclick="rejectUser('${d.id}')">Reject</button>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+        <span class="muted">Role:</span>
+        <select id="pendingRole-${idSafe}" style="padding:4px 6px;border-radius:6px;border:1px solid rgba(0,0,0,0.06);font-size:12px">
+          <option value="user">user</option>
+          <option value="teacher">teacher</option>
+          <option value="admin">admin</option>
+        </select>
+      </div>
+      <div style=\"display:flex;gap:8px\">
+        <button class=\"btn primary\" onclick=\"approveUser('${idSafe}')\">Approve</button>
+        <button class=\"btn danger\" onclick=\"rejectUser('${idSafe}')\">Reject</button>
       </div>
     </div>`;
   }).join('');
@@ -1333,9 +1342,11 @@ window.approveUser = async function(id){
     const doc = await db.collection('pendingUsers').doc(id).get();
     if(!doc.exists) { alert('Not found'); return; }
     const email = doc.data().email;
+    const roleSelect = document.getElementById(`pendingRole-${id}`);
+    const role = roleSelect && roleSelect.value ? roleSelect.value : 'user';
     await db.collection('registeredUsers').doc(id).set({
       email: email,
-      role: 'user',
+      role: role,
       approvedAt: new Date().toISOString(),
       approvedBy: getSessionEmail()||'system'
     });
@@ -1587,29 +1598,47 @@ function showUserBadge(){
 
 /* =========================
    Role -> UI restrictions
-   - queued / not whitelisted => only Home tab visible
-   - user / teacher / admin => all tabs visible
+   Roles:
+   - queued / in-que / null => only Home
+   - user => Home, Live, Matches
+   - teacher => Home, Sports, Scoring, Matches, Live
+   - admin => everything (Home, Sports, Scoring, Matches, Live, Users)
 */
 function restrictUIForRole(role){
-  // role may be 'queued' | 'user' | 'teacher' | 'admin' | null
-  // hide/disable nav buttons accordingly
+  // Normalize role string
+  const r = (role || '').toString().toLowerCase();
+  let normalized = r;
+  if(!r || r === 'queued' || r === 'in-que') normalized = 'queued';
+
+  // Determine allowed tabs for this role
+  let allowedTabs = [];
+  if(normalized === 'admin'){
+    allowedTabs = ['home','sports','scoring','matches','live','users'];
+  } else if(normalized === 'teacher'){
+    allowedTabs = ['home','sports','scoring','matches','live'];
+  } else if(normalized === 'user'){
+    allowedTabs = ['home','live','matches'];
+  } else { // queued or unknown => only home
+    allowedTabs = ['home'];
+  }
+
   const nav = document.querySelectorAll('.sidebar nav button[data-tab]');
   nav.forEach(b=>{
     const tab = b.dataset.tab;
-    if(role === 'queued' || !role){
-      // show only home, hide/disable others except home
-      if(tab === 'home') { b.classList.remove('disabled'); b.style.display='block'; }
-      else { b.classList.add('disabled'); /* optionally hide */ b.style.display='none'; }
-    } else {
-      // show all tabs
+    if(allowedTabs.includes(tab)){
       b.classList.remove('disabled');
-      b.style.display='block';
+      b.style.display = 'block';
+    } else {
+      b.classList.add('disabled');
+      b.style.display = 'none';
     }
   });
-  // Also ensure currently visible tab is allowed
-  const active = document.querySelector('.tab[style*="display:block"]');
-  if(role === 'queued' && active && active.id !== 'home'){
-    showTab('home');
+
+  // Ensure currently visible tab is allowed; otherwise, fall back to first allowed tab
+  const activeSection = document.querySelector('.tab[style*="display:block"]');
+  const fallbackTab = allowedTabs[0] || 'home';
+  if(!activeSection || !allowedTabs.includes(activeSection.id)){
+    showTab(fallbackTab);
   }
 }
 
