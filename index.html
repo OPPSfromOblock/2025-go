@@ -1329,17 +1329,20 @@ async function refreshUsersLists(){
     const roleRaw = data.role || 'user';
     const role = escapeHtml(roleRaw);
     const idSafe = d.id;
-    return `<div style="margin:6px 0;padding:8px;background:#f4f4f4;border-radius:6px;display:flex;justify-content:space-between;align-items:center;gap:8px">
-      <div style="font-weight:800">${em}</div>
-      <div style="display:flex;gap:8px;align-items:center;font-size:12px">
-        <span class="muted">Role:</span>
+    return `<div style="margin:6px 0;padding:8px;background:#f4f4f4;border-radius:6px;display:flex;flex-direction:column;gap:6px;width:100%;box-sizing:border-box">
+      <div style="font-weight:800;display:flex;flex-wrap:wrap;align-items:center;gap:6px">
+        <span>${em}</span>
+        <span style="font-size:12px;padding:2px 8px;border-radius:999px;background:rgba(0,0,0,0.04);color:#374151">${role}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px">
+        <span class="muted">Change to:</span>
         <select id="wlRole-${idSafe}" style="padding:4px 6px;border-radius:6px;border:1px solid rgba(0,0,0,0.06);font-size:12px">
           <option value="user" ${roleRaw==='user'?'selected':''}>user</option>
           <option value="teacher" ${roleRaw==='teacher'?'selected':''}>teacher</option>
           <option value="admin" ${roleRaw==='admin'?'selected':''}>admin</option>
         </select>
         <button class="btn" style="padding:4px 10px;font-size:12px" onclick="updateWhitelistRole('${idSafe}')">Update</button>
-        <button class=\"btn danger\" onclick=\"removeWhitelist('${idSafe}')\">Remove</button>
+        <button class=\"btn danger\" style="padding:4px 10px;font-size:12px" onclick=\"removeWhitelist('${idSafe}')\">Remove</button>
       </div>
     </div>`;
   }).join('');
