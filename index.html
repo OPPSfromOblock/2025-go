@@ -79,15 +79,29 @@
   .log{max-height:220px;overflow:auto;background:rgba(0,0,0,0.02);padding:8px;border-radius:8px;font-size:13px}
 
   /* Auth overlay */
-  .overlay{
-    position:fixed;inset:0;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-    display:none;align-items:center;justify-content:center;z-index:3000;
-    backdrop-filter: blur(6px);
-  }
-  .pwbox{background:#fff;padding:20px;border-radius:12px;width:420px;border:1px solid rgba(0,0,0,0.06);text-align:left}
-  .pwbox h2{color:var(--accent);margin-bottom:8px}
-  .pwbox input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);margin-top:6px}
-  .small-muted{font-size:13px;color:var(--muted)}
+ /* overlay base + transition */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  /* default hidden */
+  display:none;
+  opacity:0;
+  pointer-events:none;
+  z-index:3000;
+  align-items:center;
+  justify-content:center;
+  backdrop-filter: blur(6px);
+  transition: opacity 0.22s ease;
+}
+
+/* visible state - fades in/out */
+.overlay.visible {
+  display:flex;
+  opacity:1;
+  pointer-events:auto;
+}
+
 
   /* Responsive */
   @media (max-width:900px){
@@ -583,8 +597,8 @@ window.removeWhitelist = async function(id){
 /* =========================
    Auth UI interactions
 */
-btnShowAuth.addEventListener('click', ()=> { authOverlay.style.display='flex'; tabRegister.click(); });
-authClose.addEventListener('click', ()=> { authOverlay.style.display='none'; });
+btnShowAuth.addEventListener('click', ()=> { ashowAuthOverlay(); tabRegister.click(); });
+authClose.addEventListener('click', ()=> { hideAuthOverlay(); });
 
 // Auth tabs
 tabRegister.addEventListener('click', ()=> { tabRegister.classList.add('primary'); tabLogin.classList.remove('primary'); registerForm.style.display='block'; loginForm.style.display='none'; });
@@ -710,22 +724,72 @@ if (auth.isSignInWithEmailLink && auth.isSignInWithEmailLink(window.location.hre
 /* Helper to show/hide auth overlay safely (ensures it is clickable and visible) */
 function showAuthOverlay(){
   try{
+    if(!authOverlay) authOverlay = document.getElementById('authOverlay');
     if(authOverlay){
-      showAuthOverlay();
-      authOverlay.style.opacity = '1';
-      authOverlay.style.pointerEvents = 'auto';
+      // ensure visible and start fade-in
+      authOverlay.classList.add('visible');
       authOverlay.style.zIndex = '9999';
     }
   }catch(e){ console.warn('showAuthOverlay', e); }
 }
+
 function hideAuthOverlay(){
   try{
+    if(!authOverlay) authOverlay = document.getElementById('authOverlay');
     if(authOverlay){
-      hideAuthOverlay();
-      authOverlay.style.pointerEvents = 'none';
+      // remove visible (starts CSS fade-out). After transition, element will be non-interactive (pointer-events:none).
+      authOverlay.classList.remove('visible');
+      // remove z-index after a short delay (longer than transition) to avoid visual flicker
+      setTimeout(()=>{ try{ authOverlay.style.zIndex=''; }catch(e){} }, 300);
     }
   }catch(e){ console.warn('hideAuthOverlay', e); }
 }
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    // ensure variables exist and point to actual elements
+    if(typeof authOverlay === 'undefined' || !authOverlay) authOverlay = document.getElementById('authOverlay');
+    if(typeof upgradeCodeInput === 'undefined' || !upgradeCodeInput) upgradeCodeInput = document.getElementById('upgradeCode');
+    if(typeof codeAccessBtn === 'undefined' || !codeAccessBtn) codeAccessBtn = document.getElementById('codeAccessBtn');
+    if(typeof codeAccessMsg === 'undefined' || !codeAccessMsg) codeAccessMsg = document.getElementById('codeAccessMsg');
+
+    // wire close button (defensive)
+    const closeBtn = document.getElementById('authClose');
+    if(closeBtn) closeBtn.addEventListener('click', () => hideAuthOverlay());
+
+    // ensure the "Sign in / Register" button opens the overlay
+    const showBtn = document.getElementById('btnShowAuth');
+    if(showBtn){
+      showBtn.removeEventListener && showBtn.removeEventListener('click', ()=>{}); // harmless try
+      showBtn.addEventListener('click', ()=> { showAuthOverlay(); if(tabRegister) tabRegister.click(); });
+    }
+
+    // wire bypass button
+    if(codeAccessBtn){
+      codeAccessBtn.addEventListener('click', function(){
+        const code = (upgradeCodeInput && upgradeCodeInput.value || '').trim();
+        if(!code){
+          if(codeAccessMsg){ codeAccessMsg.style.display='block'; codeAccessMsg.style.color='red'; codeAccessMsg.innerText='Enter code'; }
+          return;
+        }
+        if(code === '123'){
+          // grant temporary admin session
+          localStorage.setItem('go_currentEmail','bypass@local');
+          localStorage.setItem('go_currentRole','admin');
+          localStorage.setItem('go_displayName','Admin');
+          if(codeAccessMsg){ codeAccessMsg.style.display='block'; codeAccessMsg.style.color='green'; codeAccessMsg.innerText='Admin bypass accepted'; }
+          // update UI
+          showUserBadge();
+          applyRoleToUI('admin');
+          loadUsersTab().catch(()=>{});
+          hideAuthOverlay();
+        } else {
+          if(codeAccessMsg){ codeAccessMsg.style.display='block'; codeAccessMsg.style.color='red'; codeAccessMsg.innerText='Invalid code'; }
+        }
+      });
+    }
+  }catch(e){ console.warn('overlay init err', e); }
+});
+
 
 /* Admin bypass: allow quick admin session with code '123' */
 (function registerBypassListener(){
