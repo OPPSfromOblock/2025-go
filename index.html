@@ -12,86 +12,367 @@
 
 <style>
   :root{
-    --bg:#fff;
-    --card:#fff;
-    --text:#2b2b2b;
+    --bg:#fff9fb;
+    --card:#ffffff;
+    --card-alt:#fff2f4;
+    --text:#1f2933;
     --accent:#c8102e; /* deep red */
     --accent-2:#e5243b; /* brighter red */
-    --muted:#777;
+    --accent-soft:rgba(200,16,46,0.08);
+    --muted:#7a7a7a;
     --glass: rgba(200,0,0,0.04);
     --radius:12px;
+    --radius-lg:16px;
+    --border-subtle:rgba(15,23,42,0.06);
+    --shadow-soft:0 14px 40px rgba(15,23,42,0.08);
   }
-  *{box-sizing:border-box}
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{scroll-behavior:smooth}
   body{
-    margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:linear-gradient(180deg,#fff,#fff);color:var(--text);
-    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
-    min-height:100vh;display:flex;align-items:stretch;
+    margin:0;
+    font-family:Inter,system-ui,Arial,sans-serif;
+    background:radial-gradient(circle at top,#fff,#fff9fb);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    min-height:100vh;
+    display:flex;
+    align-items:stretch;
   }
 
   /* Layout */
-  .sidebar{width:260px;padding:20px;background:linear-gradient(180deg,#fff,#fff);border-right:1px solid rgba(0,0,0,0.06);display:flex;flex-direction:column;gap:16px}
+  .sidebar{
+    width:260px;
+    padding:20px 18px;
+    background:linear-gradient(180deg,#ffffff,#fff9fb);
+    border-right:1px solid var(--border-subtle);
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .hamburger-btn{
+    display:none;
+    border:0;
+    background:rgba(255,255,255,0.9);
+    font-size:22px;
+    cursor:pointer;
+    padding:6px 9px;
+    border-radius:999px;
+    box-shadow:0 4px 10px rgba(15,23,42,0.12);
+    transition:background 0.2s ease,transform 0.1s ease,box-shadow 0.2s ease;
+  }
+  .hamburger-btn:hover{background:#fff}
+  .hamburger-btn:active{transform:scale(0.96);box-shadow:0 2px 6px rgba(15,23,42,0.18)}
+  .hamburger-btn:focus{outline:2px solid rgba(0,0,0,0.4)}
+
   .brand{display:flex;align-items:center;gap:12px}
-  .logo{width:48px;height:48px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900}
+  .logo{
+    width:48px;height:48px;border-radius:12px;
+    background:radial-gradient(circle at 30% 0%,#ff6b81,var(--accent));
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:900;letter-spacing:0.03em;
+    box-shadow:0 10px 24px rgba(200,16,46,0.45);
+  }
   .title{font-weight:900;font-size:16px}
   nav{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-  nav button{background:transparent;border:0;padding:10px;border-radius:10px;text-align:left;cursor:pointer;font-weight:700;color:var(--text)}
-  nav button.disabled{opacity:0.45;pointer-events:none}
-  nav button.active{background:linear-gradient(90deg,rgba(200,16,46,0.08),rgba(229,36,59,0.04));color:var(--accent)}
+  nav button{
+    background:transparent;
+    border:0;
+    padding:9px 10px;
+    border-radius:10px;
+    text-align:left;
+    cursor:pointer;
+    font-weight:700;
+    color:var(--text);
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    transition:background 0.18s ease,color 0.18s ease,transform 0.08s ease;
+  }
+  nav button:hover{background:rgba(15,23,42,0.04)}
+  nav button.disabled{opacity:0.4;pointer-events:none}
+  nav button.active{
+    background:linear-gradient(90deg,var(--accent-soft),rgba(229,36,59,0.06));
+    color:var(--accent);
+    transform:translateX(1px);
+  }
   .grow{flex:1}
 
-  .main{flex:1;padding:22px;overflow:auto}
+  .main{
+    flex:1;
+    padding:22px 24px 26px;
+    overflow:auto;
+  }
   header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  header h1{margin:0;font-size:20px;color:var(--accent);font-weight:900}
-  .card{background:#fff;border-radius:var(--radius);padding:16px;border:1px solid rgba(0,0,0,0.05);box-shadow:0 6px 20px rgba(0,0,0,0.03)}
+  header h1{
+    margin:0;
+    font-size:20px;
+    color:var(--accent);
+    font-weight:900;
+    letter-spacing:0.02em;
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:var(--radius-lg);
+    padding:16px 18px;
+    border:1px solid var(--border-subtle);
+    box-shadow:var(--shadow-soft);
+    backdrop-filter:blur(8px);
+  }
   .muted{color:var(--muted)}
   .row{display:flex;gap:10px;align-items:center}
 
-  /* Start scoring modal */
-  .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:520px;max-width:96vw;background:#fff;border-radius:12px;padding:18px;border:2px solid rgba(200,16,46,0.06);box-shadow:0 20px 60px rgba(0,0,0,0.08);display:none;z-index:2000}
-  .modal.show{display:block}
-  .modal h3{margin:0 0 12px 0;color:var(--accent)}
+  /* Make inner flex rows wrap nicely on mobile */
+  .card>div{display:flex;align-items:center;gap:8px}
+
+  /* Form & controls */
   .form-row{display:flex;gap:8px;margin-bottom:10px}
   .form-row label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-  input[type="text"], input[type="email"], select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)}
-  .btn{padding:10px 12px;border-radius:10px;border:0;background:rgba(0,0,0,0.06);cursor:pointer;font-weight:800}
-  .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff}
-  .btn.ghost{background:transparent;border:1px solid rgba(0,0,0,0.06)}
+  input[type="text"], input[type="email"], select{
+    width:100%;
+    padding:10px 11px;
+    border-radius:10px;
+    border:1px solid var(--border-subtle);
+    font-size:14px;
+    background:#fdfdfd;
+    transition:border-color 0.18s ease,box-shadow 0.18s ease,background 0.18s ease;
+  }
+  input[type="text"]:focus, input[type="email"]:focus, select:focus{
+    outline:none;
+    border-color:var(--accent);
+    box-shadow:0 0 0 1px rgba(200,16,46,0.35);
+    background:#ffffff;
+  }
+
+  .btn{
+    padding:10px 13px;
+    border-radius:999px;
+    border:0;
+    background:rgba(15,23,42,0.05);
+    cursor:pointer;
+    font-weight:800;
+    font-size:13px;
+    letter-spacing:0.02em;
+    transition:background 0.18s ease,transform 0.08s ease,box-shadow 0.18s ease,color 0.18s ease;
+    white-space:nowrap;
+  }
+  .btn:hover{background:rgba(15,23,42,0.09)}
+  .btn:active{transform:scale(0.97);box-shadow:none}
+  .btn.primary{
+    background:linear-gradient(120deg,var(--accent),var(--accent-2));
+    color:#fff;
+    box-shadow:0 8px 20px rgba(200,16,46,0.35);
+  }
+  .btn.primary:hover{box-shadow:0 10px 26px rgba(200,16,46,0.42)}
+  .btn.ghost{background:transparent;border:1px solid var(--border-subtle)}
   .btn.danger{background:#ff3b3b;color:#fff}
-  .btn[disabled]{opacity:0.5;cursor:not-allowed}
+  .btn[disabled]{opacity:0.5;cursor:not-allowed;box-shadow:none}
+  .match-filter-active{
+    background:linear-gradient(90deg,rgba(200,16,46,0.12),rgba(229,36,59,0.08));
+    color:var(--accent);
+    box-shadow:0 0 0 1px rgba(200,16,46,0.25);
+  }
+
+  /* Start scoring modal */
+  .modal{
+    position:fixed;
+    left:50%;top:50%;transform:translate(-50%,-50%);
+    width:520px;
+    max-width:96vw;
+    max-height:90vh;
+    background:#fff;
+    border-radius:16px;
+    padding:18px 18px 16px;
+    border:1px solid var(--border-subtle);
+    box-shadow:0 24px 70px rgba(15,23,42,0.28);
+    display:none;
+    z-index:2000;
+    overflow-y:auto;
+  }
+  .modal.show{display:block}
+  .modal h3{margin:0 0 12px 0;color:var(--accent)}
 
   /* Matches list */
-  .match-card{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.04);margin-bottom:10px}
-  .badge{padding:6px 10px;border-radius:999px;font-weight:900}
+  .match-card{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 13px;
+    border-radius:12px;
+    border:1px solid rgba(15,23,42,0.05);
+    margin-bottom:10px;
+    background:#ffffff;
+    box-shadow:0 6px 18px rgba(15,23,42,0.04);
+    transition:transform 0.12s ease,box-shadow 0.12s ease,background 0.15s ease;
+  }
+  .match-card:hover{
+    transform:translateY(-1px);
+    box-shadow:0 10px 24px rgba(15,23,42,0.08);
+    background:#fff9fb;
+  }
+  .badge{padding:6px 10px;border-radius:999px;font-weight:900;font-size:11px}
   .live{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff}
   .done{background:#2ecc71;color:#fff}
-  .scheduled{background:rgba(0,0,0,0.06);color:var(--text)}
+  .scheduled{background:rgba(15,23,42,0.06);color:var(--text)}
+  .winner{color:#2ecc71;font-weight:800}
+  .loser{color:#e74c3c;font-weight:800}
+  .tie{color:#f1c40f;font-weight:900}
 
   /* Scoring panel */
-  #scoreSheet{display:none;position:fixed;inset:8% 8% auto 8%;z-index:1500;background:#fff;border-radius:12px;padding:16px;border:1px solid rgba(0,0,0,0.06);box-shadow:0 24px 80px rgba(0,0,0,0.08);width:84%;max-width:1100px}
+  #scoreSheet{
+    display:none;
+    position:fixed;
+    inset:8% 8% auto 8%;
+    z-index:1500;
+    background:#fff;
+    border-radius:16px;
+    padding:16px 18px;
+    border:1px solid var(--border-subtle);
+    box-shadow:0 24px 80px rgba(15,23,42,0.3);
+    width:84%;
+    max-width:1100px;
+    max-height:84vh;
+    overflow-y:auto;
+  }
   #scoreSheet.show{display:block}
-  #scoreHead{display:flex;justify-content:space-between;align-items:center}
+  #scoreHead{display:flex;justify-content:space-between;align-items:center;gap:12px}
   .scoreCenter{font-size:40px;font-weight:900;color:var(--accent)}
-  .scoreControls{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap} /* Added flex-wrap */
-  .teamBlock{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.04);display:flex;flex-direction:column;gap:8px;align-items:center}
+  .scoreControls{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+  .teamBlock{
+    flex:1;
+    padding:12px;
+    border-radius:12px;
+    border:1px solid rgba(15,23,42,0.05);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    align-items:center;
+    background:linear-gradient(180deg,#ffffff,#fff5f7);
+  }
 
   /* Event log */
-  .log{max-height:220px;overflow:auto;background:rgba(0,0,0,0.02);padding:8px;border-radius:8px;font-size:13px}
+  .log{
+    max-height:220px;
+    overflow:auto;
+    background:rgba(15,23,42,0.03);
+    padding:8px;
+    border-radius:10px;
+    font-size:13px;
+  }
+
+  .pagination{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    font-size:13px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .pagination button{
+    min-width:28px;
+    padding:6px 8px;
+    border-radius:999px;
+    border:0;
+    background:rgba(15,23,42,0.05);
+    cursor:pointer;
+    font-weight:700;
+    font-size:12px;
+    transition:background 0.15s ease,transform 0.08s ease;
+  }
+  .pagination button:hover{background:rgba(15,23,42,0.09)}
+  .pagination button:active{transform:scale(0.96)}
+  .pagination button.active{
+    background:linear-gradient(120deg,var(--accent),var(--accent-2));
+    color:#fff;
+  }
+  .pagination button[disabled]{opacity:0.4;cursor:not-allowed}
 
   /* Auth overlay */
   .overlay{
-    position:fixed;inset:0;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    position:fixed;inset:0;
+    background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.9));
     display:none;align-items:center;justify-content:center;z-index:3000;
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(12px);
   }
-  .pwbox{background:#fff;padding:20px;border-radius:12px;width:420px;border:1px solid rgba(0,0,0,0.06);text-align:left}
+  .pwbox{
+    background:#fff;
+    padding:20px 18px;
+    border-radius:16px;
+    width:420px;
+    border:1px solid var(--border-subtle);
+    text-align:left;
+  }
   .pwbox h2{color:var(--accent);margin-bottom:8px}
-  .pwbox input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);margin-top:6px}
+  .pwbox input{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border-subtle);margin-top:6px}
   .small-muted{font-size:13px;color:var(--muted)}
 
   /* Responsive */
   @media (max-width:900px){
-    .sidebar{display:none}
-    #scoreSheet{width:96%;left:2%;right:2%}
+    body{flex-direction:column}
+
+    .sidebar{
+      position:fixed;
+      z-index:4000;
+      left:0;top:0;bottom:0;
+      background:#ffffff;
+      width:260px;
+      box-shadow:16px 0 40px rgba(15,23,42,0.18);
+      transform:translateX(-100%);
+      transition:transform 0.25s ease,box-shadow 0.25s ease;
+      display:flex;
+    }
+    .sidebar.mobile-open{transform:translateX(0)}
+    .hamburger-btn{display:inline-flex;align-items:center;justify-content:center}
+
+    .main{padding:16px 14px 20px}
+    header h1{font-size:18px}
+
+    .card{padding:14px 14px;border-radius:14px}
+    .card>div{flex-wrap:wrap;align-items:flex-start}
+
+    /* Center match lists & ensure one card per row on mobile */
+    #scSchedule,
+    #matchesList,
+    #liveList{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      align-items:center;
+    }
+
+    #scSchedule .match-card,
+    #matchesList .match-card,
+    #liveList .match-card{
+      width:100%;
+      max-width:480px;
+    }
+
+    #scoreSheet{
+      inset:0;
+      width:100%;
+      max-width:none;
+      border-radius:0;
+      max-height:100vh;
+    }
+
+    .modal{
+      inset:12px;
+      width:auto;
+      max-width:none;
+      left:12px;right:12px;top:12px;bottom:12px;
+      transform:none;
+      border-radius:14px;
+    }
+  }
+
+  @media (max-width:600px){
+    header{align-items:flex-start;flex-direction:column;gap:6px}
+    .badge{font-size:10px;padding-inline:8px}
+    .scoreCenter{font-size:32px}
+    .teamBlock{padding:10px}
   }
 </style>
 </head>
@@ -133,7 +414,10 @@
 
 <div class="main">
   <header>
-    <h1>GO 2025 — Scoring</h1>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button id="hamburgerBtn" class="hamburger-btn" aria-label="Toggle navigation">☰</button>
+      <h1>GO 2025 — Scoring</h1>
+    </div>
     <div class="muted">Red & White palette • Realtime DB • SPA</div>
   </header>
 
@@ -169,6 +453,7 @@
       </div>
 
       <div id="scSchedule" style="margin-top:14px"></div>
+      <div id="scScoringPagination" class="pagination" style="margin-top:16px;display:none"></div>
     </div>
   </section>
 
@@ -190,6 +475,7 @@
         <input id="searchMatches" placeholder="Search team, sport..." style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)"/>
       </div>
       <div id="matchesList" style="margin-top:12px"></div>
+      <div id="matchesPagination" class="pagination" style="margin-top:16px;display:none"></div>
     </div>
   </section>
 
@@ -203,6 +489,7 @@
         <select id="filterAgeLive" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)"><option value="all">All</option></select>
       </div>
       <div id="liveList" style="margin-top:12px"></div>
+      <div id="livePagination" class="pagination" style="margin-top:16px;display:none"></div>
     </div>
   </section>
 
@@ -263,6 +550,7 @@
     <div>
       <div id="sheetTitle" style="font-weight:900;font-size:18px;color:var(--accent)"></div>
       <div id="sheetMeta" class="muted" style="font-size:13px"></div>
+      <div id="winnerLoserHeader" style="margin-top:4px;font-size:13px"></div>
     </div>
     <div>
       <button id="closeScore" class="btn ghost">Close</button>
@@ -311,6 +599,16 @@
   </div>
 
   <div style="height:12px"></div>
+
+  <!-- Volleyball: per-set summary & Next Set control -->
+  <div id="volleyballSetsArea" style="display:none;margin-bottom:8px">
+    <h4 style="margin:6px 0">Sets</h4>
+    <div id="volleyballSetsList" class="log" style="max-height:120px"></div>
+    <div style="margin-top:6px;display:flex;gap:8px;align-items:center">
+      <div class="muted" id="currentSetLabel">Current set: 1</div>
+      <button id="btnNextSet" class="btn">Next Set</button>
+    </div>
+  </div>
 
   <div>
     <h4 style="margin:6px 0">Event Log</h4>
@@ -438,6 +736,13 @@ const userNameEl = document.getElementById('userName');
 const userEmailEl = document.getElementById('userEmail');
 
 const navButtons = document.querySelectorAll('nav button[data-tab], nav button');
+const sidebarEl = document.querySelector('.sidebar');
+const hamburgerBtn = document.getElementById('hamburgerBtn');
+if(hamburgerBtn && sidebarEl){
+  hamburgerBtn.addEventListener('click', ()=>{
+    sidebarEl.classList.toggle('mobile-open');
+  });
+}
 
 const usersTabBtn = document.querySelector('nav button[data-tab="users"]');
 const pendingList = document.getElementById('pendingList');
@@ -917,6 +1222,10 @@ document.querySelectorAll('nav button[data-tab]').forEach(btn=>{
     document.querySelectorAll('.tab').forEach(sec=>sec.style.display='none');
     const s = document.getElementById(t);
     if(s) s.style.display='block';
+    // Close mobile sidebar after navigation
+    if(window.innerWidth <= 900 && sidebarEl){
+      sidebarEl.classList.remove('mobile-open');
+    }
   });
 });
 
@@ -976,24 +1285,199 @@ rtdb.ref('matches').on('value', snap=>{
   renderLiveList(lastMatchSnapshot);
 });
 
-/* Render helpers (kept simple) */
-function makeMatchCard(matchObj, matchId){
+/* Pagination & render helpers */
+const PAGE_SIZE = 10;
+let scoringPage = 1;
+let matchesPage = 1;
+let livePage = 1;
+
+function renderPagination(containerId, currentPage, totalItems, onPageChange){
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  if(totalItems <= PAGE_SIZE){
+    container.style.display = 'none';
+    container.innerHTML = '';
+    return;
+  }
+  container.style.display = 'flex';
+  const maxButtonsToShow = 5;
+  let startPage = Math.max(1, currentPage - 2);
+  let endPage = Math.min(totalPages, startPage + maxButtonsToShow - 1);
+  startPage = Math.max(1, endPage - maxButtonsToShow + 1);
+
+  const buttons = [];
+  buttons.push(`<button ${currentPage===1?'disabled':''} data-page="prev">&lt;</button>`);
+  for(let p=startPage;p<=endPage;p++){
+    buttons.push(`<button data-page="${p}" class="${p===currentPage?'active':''}">${p}</button>`);
+  }
+  buttons.push(`<button ${currentPage===totalPages?'disabled':''} data-page="next">&gt;</button>`);
+
+  container.innerHTML = buttons.join('');
+
+  container.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const val = btn.getAttribute('data-page');
+      if(!val) return;
+      let target = currentPage;
+      if(val === 'prev' && currentPage>1) target = currentPage-1;
+      else if(val === 'next' && currentPage<totalPages) target = currentPage+1;
+      else if(val !== 'prev' && val !== 'next') target = parseInt(val,10) || currentPage;
+      if(target !== currentPage) onPageChange(target);
+    });
+  });
+}
+
+function makeMatchCard(matchObj, matchId, section){
   const m = matchObj || {};
   const el = document.createElement('div'); el.className='match-card';
   const left = document.createElement('div');
-  left.innerHTML = `<div style="font-weight:900">${SPORT_LABEL[m.sport] || m.sport} — ${AGE_LABEL[m.age] || m.age}</div>
-                    <div class="muted" style="font-size:13px">${m.teamA} vs ${m.teamB}</div>`;
+
+  // Winner / loser summary for finished matches
+  let extraLine = '';
+  if(m.status === 'finished'){
+    // Taekwondo: KO winner overrides points
+    if(m.sport === 'taekwondo' && m.koWinner){
+      const winnerTeam = m.koWinner === 'A' ? m.teamA : m.teamB;
+      const loserTeam  = m.koWinner === 'A' ? m.teamB : m.teamA;
+      extraLine = `<div style=\"font-size:13px;margin-top:4px\">
+        <span class=\"winner\">Winner: ${winnerTeam} (by KO)</span>
+        &nbsp;&nbsp;
+        <span class=\"loser\">Loser: ${loserTeam}</span>
+      </div>`;
+    }
+    // Volleyball: use sets summary if available
+    else if(m.sport === 'volleyball' && Array.isArray(m.volleyballSets) && m.volleyballSets.length > 0){
+      let setsAWon = 0, setsBWon = 0;
+      m.volleyballSets.forEach(s=>{
+        const a = s.scoreA || 0;
+        const b = s.scoreB || 0;
+        if(a > b) setsAWon++;
+        else if(b > a) setsBWon++;
+      });
+
+      if(setsAWon > setsBWon){
+        extraLine = `<div style=\"font-size:13px;margin-top:4px\">
+          <span class=\"winner\">Winner: ${m.teamA} (${setsAWon}-${setsBWon} sets)</span>
+          &nbsp;&nbsp;
+          <span class=\"loser\">Loser: ${m.teamB}</span>
+        </div>`;
+      } else if(setsBWon > setsAWon){
+        extraLine = `<div style=\"font-size:13px;margin-top:4px\">
+          <span class=\"winner\">Winner: ${m.teamB} (${setsBWon}-${setsAWon} sets)</span>
+          &nbsp;&nbsp;
+          <span class=\"loser\">Loser: ${m.teamA}</span>
+        </div>`;
+      } else {
+        extraLine = `<div style=\"font-size:13px;margin-top:4px\" class=\"muted\">Match tied (${setsAWon}-${setsBWon} sets)</div>`;
+      }
+    } else {
+      // Default: decide winner by total score (include points)
+      const scoreA = m.scoreA || 0;
+      const scoreB = m.scoreB || 0;
+      if(scoreA > scoreB){
+        extraLine = `<div style=\"font-size:13px;margin-top:4px\">
+          <span class=\"winner\">Winner: ${m.teamA} (${scoreA}-${scoreB})</span>
+          &nbsp;&nbsp;
+          <span class=\"loser\">Loser: ${m.teamB}</span>
+        </div>`;
+      } else if(scoreB > scoreA){
+        extraLine = `<div style=\"font-size:13px;margin-top:4px\">
+          <span class=\"winner\">Winner: ${m.teamB} (${scoreB}-${scoreA})</span>
+          &nbsp;&nbsp;
+          <span class=\"loser\">Loser: ${m.teamA}</span>
+        </div>`;
+      } else {
+        // Handle draw / tie (highlighted)
+        extraLine = `<div style=\"font-size:13px;margin-top:4px\" class=\"tie\">Match tied (${scoreA}-${scoreB})</div>`;
+      }
+    }
+  }
+
+  // For Matches tab, show final score beside team names (except taekwondo KO)
+  let teamsLine = `${m.teamA} vs ${m.teamB}`;
+  const hasScore = (m.scoreA != null || m.scoreB != null);
+  const isTKOK = (m.sport === 'taekwondo' && m.koWinner);
+  if(section === 'matches' && hasScore && !isTKOK){
+    const sa = m.scoreA != null ? m.scoreA : 0;
+    const sb = m.scoreB != null ? m.scoreB : 0;
+    teamsLine += ` — ${sa} - ${sb}`;
+  }
+
+  left.innerHTML = `<div style=\"font-weight:900\">${SPORT_LABEL[m.sport] || m.sport} — ${AGE_LABEL[m.age] || m.age}</div>
+                    <div class=\"muted\" style=\"font-size:13px\">${teamsLine}</div>
+                    ${extraLine}`;
   const right = document.createElement('div');
   const badge = document.createElement('div'); badge.className='badge';
   if(m.status==='live'){ badge.classList.add('live'); badge.innerText='LIVE'; }
   else if(m.status==='finished'){ badge.classList.add('done'); badge.innerText='FINISHED'; }
   else { badge.classList.add('scheduled'); badge.innerText=(m.round||''); }
   right.appendChild(badge);
-  const btnOpen = document.createElement('button'); btnOpen.className='btn'; btnOpen.style.marginLeft='8px'; btnOpen.innerText='Open';
-  btnOpen.addEventListener('click', ()=> openScoreSheet(matchId));
-  right.appendChild(btnOpen);
+
+  // Scoring tab: keep Open. Matches tab: show Info instead.
+  if(section === 'matches'){
+    const btnInfo = document.createElement('button'); btnInfo.className='btn'; btnInfo.style.marginLeft='8px'; btnInfo.innerText='Info';
+    btnInfo.addEventListener('click', ()=> showMatchInfo(matchId));
+    right.appendChild(btnInfo);
+  } else {
+    const btnOpen = document.createElement('button'); btnOpen.className='btn'; btnOpen.style.marginLeft='8px'; btnOpen.innerText='Open';
+    btnOpen.addEventListener('click', ()=> openScoreSheet(matchId));
+    right.appendChild(btnOpen);
+  }
+
   el.appendChild(left); el.appendChild(right);
   return el;
+}
+
+// Simple info popup for Matches tab
+function showMatchInfo(matchId){
+  const m = lastMatchSnapshot[matchId];
+  if(!m){ alert('Match not found'); return; }
+  const sportLabel = SPORT_LABEL[m.sport] || m.sport;
+  const ageLabel = AGE_LABEL[m.age] || m.age;
+  const scoreA = m.scoreA || 0;
+  const scoreB = m.scoreB || 0;
+
+  let info = '';
+  info += `${sportLabel} — ${ageLabel}\n`;
+  info += `${m.teamA} vs ${m.teamB}\n`;
+  info += `Status: ${m.status || ''}\n`;
+  info += `Score: ${scoreA} - ${scoreB}\n`;
+
+  // Volleyball sets summary, if available
+  if(m.sport === 'volleyball' && Array.isArray(m.volleyballSets) && m.volleyballSets.length > 0){
+    let setsAWon = 0, setsBWon = 0;
+    m.volleyballSets.forEach(s=>{
+      const a = s.scoreA || 0;
+      const b = s.scoreB || 0;
+      if(a > b) setsAWon++;
+      else if(b > a) setsBWon++;
+    });
+    info += `Sets: ${setsAWon}-${setsBWon} (A-B)\\n`;
+  }
+
+  // Sport-agnostic stats like fouls / penalties (if present)
+  if(m.stats){
+    const foulsA = m.stats.foulsA || 0;
+    const foulsB = m.stats.foulsB || 0;
+    const pensA  = m.stats.penaltiesA || 0;
+    const pensB  = m.stats.penaltiesB || 0;
+    if(foulsA || foulsB){
+      info += `Fouls: ${foulsA}-${foulsB} (A-B)\\n`;
+    }
+    if(pensA || pensB){
+      info += `Penalties: ${pensA}-${pensB} (A-B)\\n`;
+    }
+  }
+
+  // Event log (e.g., fouls, scores etc.)
+  const events = m.events || [];
+  if(events.length){
+    info += '\\nEvents (latest first):\\n';
+    events.slice(0, 15).forEach(ev=>{ info += `- ${ev}\\n`; });
+  }
+
+  alert(info);
 }
 
 function applyFiltersToMatch(matchObj, section){
@@ -1022,49 +1506,114 @@ function renderScoringList(data){
   const scoringList = document.getElementById('scSchedule');
   if(!scoringList) return;
   scoringList.innerHTML = '';
-  const arr = Object.keys(data||{}).sort((a,b)=> (data[b].createdAt||0)-(data[a].createdAt||0));
-  let count = 0;
-  arr.forEach(id=>{
-    const m = data[id];
-    if(!applyFiltersToMatch(m,'scoring')) return;
-    scoringList.appendChild(makeMatchCard(m,id));
-    count++;
+
+  // Build filtered & sorted array first
+  const allIds = Object.keys(data||{}).sort((a,b)=>{
+    const ma = data[a];
+    const mb = data[b];
+    const rank = m => m.status === 'live' ? 0 : (m.status === 'scheduled' || !m.status ? 1 : 2); // live -> scheduled/other -> finished
+    const ra = rank(ma||{});
+    const rb = rank(mb||{});
+    if(ra !== rb) return ra - rb;
+    return (mb.createdAt||0) - (ma.createdAt||0);
   });
-  if(count===0) scoringList.innerHTML='<div class="muted">No matches</div>';
+  const filteredIds = allIds.filter(id=> applyFiltersToMatch(data[id],'scoring'));
+  const total = filteredIds.length;
+
+  if(total === 0){
+    scoringList.innerHTML='<div class="muted">No matches</div>';
+    renderPagination('scScoringPagination', 1, 0, ()=>{});
+    return;
+  }
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if(scoringPage>totalPages) scoringPage = totalPages;
+  const start = (scoringPage-1)*PAGE_SIZE;
+  const pageIds = filteredIds.slice(start, start+PAGE_SIZE);
+
+  pageIds.forEach(id=>{
+    const m = data[id];
+    scoringList.appendChild(makeMatchCard(m,id,'scoring'));
+  });
+
+  renderPagination('scScoringPagination', scoringPage, total, (newPage)=>{
+    scoringPage = newPage;
+    renderScoringList(lastMatchSnapshot);
+  });
 }
 
 function renderMatchesList(data){
   const matchesList = document.getElementById('matchesList');
   if(!matchesList) return;
   matchesList.innerHTML = '';
-  const arr = Object.keys(data||{}).sort((a,b)=> (data[b].createdAt||0)-(data[a].createdAt||0));
-  let count = 0;
-  arr.forEach(id=>{
-    const m = data[id];
-    if(!applyFiltersToMatch(m,'matches')) return;
-    matchesList.appendChild(makeMatchCard(m,id));
-    count++;
+
+  const allIds = Object.keys(data||{}).sort((a,b)=>{
+    const ma = data[a];
+    const mb = data[b];
+    const rank = m => m.status === 'live' ? 0 : (m.status === 'scheduled' || !m.status ? 1 : 2); // live -> scheduled/other -> finished
+    const ra = rank(ma||{});
+    const rb = rank(mb||{});
+    if(ra !== rb) return ra - rb;
+    return (mb.createdAt||0) - (ma.createdAt||0);
   });
-  if(count===0) matchesList.innerHTML='<div class="muted">No matches</div>';
+  const filteredIds = allIds.filter(id=> applyFiltersToMatch(data[id],'matches'));
+  const total = filteredIds.length;
+
+  if(total === 0){
+    matchesList.innerHTML='<div class="muted">No matches</div>';
+    renderPagination('matchesPagination', 1, 0, ()=>{});
+    return;
+  }
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if(matchesPage>totalPages) matchesPage = totalPages;
+  const start = (matchesPage-1)*PAGE_SIZE;
+  const pageIds = filteredIds.slice(start, start+PAGE_SIZE);
+
+  pageIds.forEach(id=>{
+    const m = data[id];
+    matchesList.appendChild(makeMatchCard(m,id,'matches'));
+  });
+
+  renderPagination('matchesPagination', matchesPage, total, (newPage)=>{
+    matchesPage = newPage;
+    renderMatchesList(lastMatchSnapshot);
+  });
 }
 
 function renderLiveList(data){
   const liveList = document.getElementById('liveList');
   if(!liveList) return;
   liveList.innerHTML = '';
-  const arr = Object.keys(data||{}).sort((a,b)=> (data[b].createdAt||0)-(data[a].createdAt||0));
-  let count = 0;
-  arr.forEach(id=>{
+
+  const allIds = Object.keys(data||{}).sort((a,b)=> (data[b].createdAt||0)-(data[a].createdAt||0));
+  const filteredIds = allIds.filter(id=> applyFiltersToMatch(data[id],'live'));
+  const total = filteredIds.length;
+
+  if(total === 0){
+    liveList.innerHTML='<div class="muted">No live matches</div>';
+    renderPagination('livePagination', 1, 0, ()=>{});
+    return;
+  }
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if(livePage>totalPages) livePage = totalPages;
+  const start = (livePage-1)*PAGE_SIZE;
+  const pageIds = filteredIds.slice(start, start+PAGE_SIZE);
+
+  pageIds.forEach(id=>{
     const m = data[id];
-    if(!applyFiltersToMatch(m,'live')) return;
     const el = document.createElement('div'); el.className='match-card';
-    el.innerHTML = `<div><div style="font-weight:900">${SPORT_LABEL[m.sport]||m.sport}</div><div class="muted" style="font-size:13px">${m.teamA} vs ${m.teamB}</div></div>
-                    <div style="text-align:right"><div style="font-weight:900">${m.scoreA} - ${m.scoreB}</div><div class="muted" style="font-size:12px">${new Date(m.startedAt).toLocaleTimeString()}</div></div>`;
+    el.innerHTML = `<div><div style=\"font-weight:900\">${SPORT_LABEL[m.sport]||m.sport}</div><div class=\"muted\" style=\"font-size:13px\">${m.teamA} vs ${m.teamB}</div></div>
+                    <div style=\"text-align:right\"><div style=\"font-weight:900;font-size:22px\">${m.scoreA} - ${m.scoreB}</div><div class=\"muted\" style=\"font-size:12px\">${new Date(m.startedAt).toLocaleTimeString()} </div></div>`;
     el.addEventListener('click', ()=> openScoreSheet(id));
     liveList.appendChild(el);
-    count++;
   });
-  if(count===0) liveList.innerHTML='<div class="muted">No live matches</div>';
+
+  renderPagination('livePagination', livePage, total, (newPage)=>{
+    livePage = newPage;
+    renderLiveList(lastMatchSnapshot);
+  });
 }
 
 /* Score sheet behavior (RTDB) — included from original file */
@@ -1091,9 +1640,16 @@ function createUndoButton(side, parentEl){
 }
 
 function openScoreSheet(matchId){
-  activeMatchId = matchId;
   const m = lastMatchSnapshot[matchId];
   if(!m){ alert('Match not found'); return; }
+
+  // If match is finished, confirm before allowing edits
+  if(m.status === 'finished'){
+    const ok = confirm('This match is already finished. Do you want to edit the points?');
+    if(!ok) return;
+  }
+
+  activeMatchId = matchId;
   document.getElementById('teamAName').innerText = m.teamA || 'Team A';
   document.getElementById('teamASchool').innerText = m.teamA;
   document.getElementById('teamBName').innerText = m.teamB || 'Team B';
@@ -1141,20 +1697,43 @@ function openScoreSheet(matchId){
       break;
 
     case 'taekwondo':
+      // Taekwondo: keep point scoring AND add KO button
+      // Points for Team A
       createScoreButton('+1 Punch', 'A', 1, teamAControls);
       createScoreButton('+1 Penalty', 'A', 1, teamAControls);
       createScoreButton('+2 Kick Torso', 'A', 2, teamAControls);
       createScoreButton('+3 Kick Head', 'A', 3, teamAControls);
       createScoreButton('+4 Spin Torso', 'A', 4, teamAControls);
       createScoreButton('+5 Spin Head', 'A', 5, teamAControls);
+      // KO button for Team A
+      const koBtnA = document.createElement('button');
+      koBtnA.innerText = '+Knockout';
+      koBtnA.className = 'btn';
+      koBtnA.style.background = '#2ecc71';
+      koBtnA.style.color = '#fff';
+      koBtnA.style.fontWeight = '800';
+      koBtnA.addEventListener('click', ()=> applyKnockout('A'));
+      teamAControls.appendChild(koBtnA);
+      // Undo for Team A
       createUndoButton('A', teamAControls);
-      
+
+      // Points for Team B
       createScoreButton('+1 Punch', 'B', 1, teamBControls);
       createScoreButton('+1 Penalty', 'B', 1, teamBControls);
       createScoreButton('+2 Kick Torso', 'B', 2, teamBControls);
       createScoreButton('+3 Kick Head', 'B', 3, teamBControls);
       createScoreButton('+4 Spin Torso', 'B', 4, teamBControls);
       createScoreButton('+5 Spin Head', 'B', 5, teamBControls);
+      // KO button for Team B
+      const koBtnB = document.createElement('button');
+      koBtnB.innerText = '+Knockout';
+      koBtnB.className = 'btn';
+      koBtnB.style.background = '#2ecc71';
+      koBtnB.style.color = '#fff';
+      koBtnB.style.fontWeight = '800';
+      koBtnB.addEventListener('click', ()=> applyKnockout('B'));
+      teamBControls.appendChild(koBtnB);
+      // Undo for Team B
       createUndoButton('B', teamBControls);
       break;
 
@@ -1181,6 +1760,11 @@ function openScoreSheet(matchId){
       break;
   }
   // === END MODIFICATION ===
+
+  // Initialize winner/loser header (if finished)
+  renderWinnerLoserHeader(m);
+  // Initialize volleyball set UI (if applicable)
+  renderVolleyballSets(m);
   
   document.getElementById('scoreSheet').classList.add('show');
 }
@@ -1191,6 +1775,175 @@ function updateScoreSheetLive(m){
   document.getElementById('scoreCenter').innerText = `${(m.scoreA||0)} - ${(m.scoreB||0)}`;
   document.getElementById('eventLog').innerHTML = (m.events || []).map(ev=>`<div>${ev}</div>`).join('');
   document.getElementById('statusLabel').innerText = (m.status||'').toUpperCase();
+  renderWinnerLoserHeader(m);
+  // For volleyball, also refresh set summary UI
+  if(m.sport === 'volleyball'){
+    renderVolleyballSets(m);
+  } else {
+    const area = document.getElementById('volleyballSetsArea');
+    if(area) area.style.display = 'none';
+  }
+}
+
+// Show winner/loser line in the score sheet header for finished matches
+function renderWinnerLoserHeader(match){
+  const el = document.getElementById('winnerLoserHeader');
+  if(!el || !match) return;
+
+  if(match.status !== 'finished'){
+    el.innerHTML = '';
+    return;
+  }
+
+  // Taekwondo KO overrides everything
+  if(match.sport === 'taekwondo' && match.koWinner){
+    const winnerTeam = match.koWinner === 'A' ? match.teamA : match.teamB;
+    const loserTeam  = match.koWinner === 'A' ? match.teamB : match.teamA;
+    el.innerHTML = `<span class=\"winner\">Winner: ${winnerTeam} (by KO)</span>
+                    &nbsp;&nbsp;
+                    <span class=\"loser\">Loser: ${loserTeam}</span>`;
+    return;
+  }
+
+  // Special handling for volleyball: use sets won if available
+  if(match.sport === 'volleyball'){
+    const sets = match.volleyballSets || [];
+    if(sets.length > 0){
+      let setsAWon = 0, setsBWon = 0;
+
+      // Count completed sets
+      sets.forEach(s=>{
+        const a = s.scoreA || 0;
+        const b = s.scoreB || 0;
+        if(a > b) setsAWon++;
+        else if(b > a) setsBWon++;
+      });
+
+      if(setsAWon > setsBWon){
+        el.innerHTML = `<span class="winner">Winner: ${match.teamA} (${setsAWon}-${setsBWon} sets)</span>
+                        &nbsp;&nbsp;
+                        <span class="loser">Loser: ${match.teamB}</span>`;
+      } else if(setsBWon > setsAWon){
+        el.innerHTML = `<span class="winner">Winner: ${match.teamB} (${setsBWon}-${setsAWon} sets)</span>
+                        &nbsp;&nbsp;
+                        <span class="loser">Loser: ${match.teamA}</span>`;
+      } else {
+        // Fallback: tied in sets, show as tied
+        el.innerHTML = `<span class="muted">Match tied (${setsAWon}-${setsBWon} sets)</span>`;
+      }
+      return;
+    }
+    // If no sets data, fall through and use point totals
+  }
+
+  // Default (non-volleyball): use total score (include points)
+  const scoreA = match.scoreA || 0;
+  const scoreB = match.scoreB || 0;
+
+  if(scoreA > scoreB){
+    el.innerHTML = `<span class=\"winner\">Winner: ${match.teamA} (${scoreA}-${scoreB})</span>
+                    &nbsp;&nbsp;
+                    <span class=\"loser\">Loser: ${match.teamB}</span>`;
+  } else if(scoreB > scoreA){
+    el.innerHTML = `<span class=\"winner\">Winner: ${match.teamB} (${scoreB}-${scoreA})</span>
+                    &nbsp;&nbsp;
+                    <span class=\"loser\">Loser: ${match.teamA}</span>`;
+  } else {
+    el.innerHTML = `<span class=\"muted\">Match tied (${scoreA}-${scoreB})</span>`;
+  }
+}
+
+// Render per-set summary for volleyball matches
+function renderVolleyballSets(match){
+  const area = document.getElementById('volleyballSetsArea');
+  const list = document.getElementById('volleyballSetsList');
+  const label = document.getElementById('currentSetLabel');
+  const btn = document.getElementById('btnNextSet');
+  if(!area || !list || !label || !btn) return;
+
+  if(match.sport !== 'volleyball'){
+    area.style.display = 'none';
+    return;
+  }
+
+  area.style.display = 'block';
+  const sets = match.volleyballSets || [];
+
+  if(sets.length === 0){
+    list.innerHTML = '<div class="muted">No completed sets yet</div>';
+  } else {
+    list.innerHTML = sets.map(s=>`<div>Set ${s.set}: ${s.scoreA} - ${s.scoreB}</div>`).join('');
+  }
+
+  const currentSetNumber = match.currentSetNumber || (sets.length + 1);
+  label.innerText = `Current set: ${currentSetNumber}`;
+}
+
+// Move to the next set for volleyball without ending the match
+function advanceVolleyballSet(){
+  if(!activeMatchId) return;
+  const ref = rtdb.ref(`matches/${activeMatchId}`);
+  ref.transaction(match=>{
+    if(!match || match.sport !== 'volleyball') return match;
+
+    const sets = match.volleyballSets || [];
+    const currentSetNumber = match.currentSetNumber || (sets.length + 1);
+    const scoreA = match.scoreA || 0;
+    const scoreB = match.scoreB || 0;
+
+    // Save the just-finished set
+    sets.push({ set: currentSetNumber, scoreA, scoreB });
+    match.volleyballSets = sets;
+    match.currentSetNumber = currentSetNumber + 1;
+
+    match.events = match.events || [];
+    match.events.unshift(`${(new Date()).toLocaleTimeString()} — End of set ${currentSetNumber}: ${scoreA} - ${scoreB}`);
+
+    // Reset scores for the new set
+    match.scoreA = 0;
+    match.scoreB = 0;
+    match.updatedAt = Date.now();
+    return match;
+  }, function(err, committed, snapshot){
+    if(err){ console.error('advanceVolleyballSet failed', err); return; }
+    if(committed && snapshot.val() && activeMatchId === snapshot.key){
+      updateScoreSheetLive(snapshot.val());
+    }
+  });
+}
+
+// Wire the Next Set button once
+const btnNextSetEl = document.getElementById('btnNextSet');
+if(btnNextSetEl) btnNextSetEl.addEventListener('click', advanceVolleyballSet);
+
+// Taekwondo KO handler
+function applyKnockout(side){
+  if(!activeMatchId) return;
+  const ref = rtdb.ref(`matches/${activeMatchId}`);
+  ref.transaction(match=>{
+    if(!match) return match;
+    if(match.sport !== 'taekwondo') return match;
+    // Do not override if KO already recorded
+    if(match.koWinner) return match;
+
+    match.koWinner = side;
+    match.status = 'finished';
+    const now = Date.now();
+    match.finishedAt = now;
+    match.updatedAt = now;
+
+    const winnerTeam = side === 'A' ? (match.teamA || 'Team A') : (match.teamB || 'Team B');
+    match.events = match.events || [];
+    // include Team A/Team B so undoLast can find it
+    const sideLabel = side === 'A' ? 'Team A' : 'Team B';
+    match.events.unshift(`${(new Date()).toLocaleTimeString()} — ${sideLabel} Knockout: ${winnerTeam}`);
+    return match;
+  }, function(err, committed, snapshot){
+    if(err){ console.error('applyKnockout failed', err); return; }
+    if(committed && snapshot.val() && activeMatchId === snapshot.key){
+      updateScoreSheetLive(snapshot.val());
+    }
+  });
 }
 
 document.getElementById('closeScore').addEventListener('click', ()=> {
@@ -1216,9 +1969,28 @@ function applyScore(side, delta, eventLabel){
   const ref = rtdb.ref(`matches/${activeMatchId}`);
   ref.transaction(match=>{
     if(!match) return match;
+
+    // Update score
     if(side==='A'){ match.scoreA = Math.max(0, (match.scoreA||0) + delta); }
     else { match.scoreB = Math.max(0, (match.scoreB||0) + delta); }
     
+    // Track non-point stats like fouls/penalties separately per side
+    if(eventLabel){
+      const labelLower = eventLabel.toLowerCase();
+      match.stats = match.stats || {};
+      const isSideA = (side === 'A');
+      // Generic foul counter
+      if(labelLower.includes('foul')){
+        const key = isSideA ? 'foulsA' : 'foulsB';
+        match.stats[key] = (match.stats[key] || 0) + 1;
+      }
+      // Generic penalty counter
+      if(labelLower.includes('penalty')){
+        const key = isSideA ? 'penaltiesA' : 'penaltiesB';
+        match.stats[key] = (match.stats[key] || 0) + 1;
+      }
+    }
+
     // --- MODIFIED: Use eventLabel for log ---
     let txt = '';
     const teamName = side==='A' ? 'Team A' : 'Team B';
@@ -1232,7 +2004,7 @@ function applyScore(side, delta, eventLabel){
     // --- END MOD ---
 
     match.events = match.events || [];
-    match.events.unshift(`${(new Date()).toLocaleTimeString()} — ${txt}`);
+    match.events.unshift(`${(new Date()).toLocaleTimeString()}  ${txt}`);
     match.updatedAt = Date.now();
     return match;
   }, function(err, committed, snapshot){
@@ -1267,6 +2039,17 @@ function undoLast(side){
     }
     if(idx===-1) return match;
     const ev = match.events.splice(idx,1)[0];
+
+    // Special case: undo taekwondo KO
+    if(match.sport === 'taekwondo' && ev.includes('Knockout')){
+      // Clear KO winner and revert to live (scores unchanged)
+      match.koWinner = null;
+      match.status = 'live';
+      match.finishedAt = null;
+      match.events.unshift(`${(new Date()).toLocaleTimeString()} — UNDO KO ${side}`);
+      match.updatedAt = Date.now();
+      return match;
+    }
     
     // Try to find score from label like (+X) or +X
     const m = ev.match(/\([+-]?(\d+)\)/) || ev.match(/[+-](\d+)/);
@@ -1290,26 +2073,93 @@ function undoLast(side){
 document.getElementById('finishMatch').addEventListener('click', async ()=>{
   if(!activeMatchId) return;
   if(!confirm('Mark match as finished?')) return;
+
+  const ref = rtdb.ref(`matches/${activeMatchId}`);
   const now = Date.now();
-  await rtdb.ref(`matches/${activeMatchId}`).update({ status:'finished', finishedAt: now, updatedAt: now });
-  document.getElementById('statusLabel').innerText = 'FINISHED';
-  document.getElementById('scoreSheet').classList.remove('show');
-  activeMatchId = null;
+
+  ref.transaction(match=>{
+    if(!match) return match;
+
+    // For volleyball, make sure the final set is recorded in volleyballSets
+    if(match.sport === 'volleyball'){
+      const sets = match.volleyballSets || [];
+      const scoreA = match.scoreA || 0;
+      const scoreB = match.scoreB || 0;
+      const currentSetNumber = match.currentSetNumber || (sets.length + 1);
+
+      // Only push if there is a non-zero score and we haven't just started a fresh set
+      if(scoreA > 0 || scoreB > 0){
+        sets.push({ set: currentSetNumber, scoreA, scoreB });
+        match.volleyballSets = sets;
+        match.events = match.events || [];
+        match.events.unshift(`${(new Date()).toLocaleTimeString()} — End of set ${currentSetNumber}: ${scoreA} - ${scoreB}`);
+      }
+    }
+
+    match.status = 'finished';
+    match.finishedAt = now;
+    match.updatedAt = now;
+    return match;
+  }, function(err, committed, snapshot){
+    if(err){ console.error('finishMatch transaction failed', err); return; }
+    if(committed){
+      document.getElementById('statusLabel').innerText = 'FINISHED';
+      document.getElementById('scoreSheet').classList.remove('show');
+      activeMatchId = null;
+    }
+  });
 });
 
 document.getElementById('resetMatch').addEventListener('click', async ()=>{
   if(!activeMatchId) return;
   if(!confirm('Reset scores to 0 and clear events?')) return;
-  await rtdb.ref(`matches/${activeMatchId}`).update({ scoreA:0, scoreB:0, events:[], updatedAt: Date.now() });
-  document.getElementById('teamAScore').innerText='0'; document.getElementById('teamBScore').innerText='0'; document.getElementById('eventLog').innerHTML='';
+
+  const ref = rtdb.ref(`matches/${activeMatchId}`);
+  await ref.transaction(match=>{
+    if(!match) return match;
+    match.scoreA = 0;
+    match.scoreB = 0;
+    match.events = [];
+    // If it was a taekwondo KO, clear KO state and make match live again
+    if(match.sport === 'taekwondo'){
+      match.koWinner = null;
+      match.status = 'live';
+      match.finishedAt = null;
+    }
+    match.updatedAt = Date.now();
+    return match;
+  });
+
+  document.getElementById('teamAScore').innerText='0';
+  document.getElementById('teamBScore').innerText='0';
+  document.getElementById('eventLog').innerHTML='';
   pushEventToMatch(activeMatchId, 'Match reset');
 });
 
 /* filters */
 window.matchesViewFilter = 'all';
-document.getElementById('filterAll').addEventListener('click', ()=>{ window.matchesViewFilter='all'; renderMatchesList(lastMatchSnapshot); });
-document.getElementById('filterLive').addEventListener('click', ()=>{ window.matchesViewFilter='live'; renderMatchesList(lastMatchSnapshot); });
-document.getElementById('filterFinished').addEventListener('click', ()=>{ window.matchesViewFilter='finished'; renderMatchesList(lastMatchSnapshot); });
+const filterAllBtn = document.getElementById('filterAll');
+const filterLiveBtn = document.getElementById('filterLive');
+const filterFinishedBtn = document.getElementById('filterFinished');
+
+function setMatchesFilter(mode){
+  window.matchesViewFilter = mode;
+  // Update visual state
+  [filterAllBtn, filterLiveBtn, filterFinishedBtn].forEach(btn=>{
+    if(btn) btn.classList.remove('match-filter-active');
+  });
+  if(mode === 'all' && filterAllBtn) filterAllBtn.classList.add('match-filter-active');
+  if(mode === 'live' && filterLiveBtn) filterLiveBtn.classList.add('match-filter-active');
+  if(mode === 'finished' && filterFinishedBtn) filterFinishedBtn.classList.add('match-filter-active');
+  renderMatchesList(lastMatchSnapshot);
+}
+
+if(filterAllBtn) filterAllBtn.addEventListener('click', ()=> setMatchesFilter('all'));
+if(filterLiveBtn) filterLiveBtn.addEventListener('click', ()=> setMatchesFilter('live'));
+if(filterFinishedBtn) filterFinishedBtn.addEventListener('click', ()=> setMatchesFilter('finished'));
+
+// Initialize default state
+setMatchesFilter('all');
 document.getElementById('searchMatches').addEventListener('input', ()=> renderMatchesList(lastMatchSnapshot));
 ['filterSportScoring','filterAgeScoring','filterSportMatches','filterAgeMatches','filterSportLive','filterAgeLive'].forEach(id=>{
   const el = document.getElementById(id);
@@ -1331,6 +2181,13 @@ document.getElementById('startCreate').addEventListener('click', async ()=>{
   const doc = {
     sport, age, teamA, teamB, scoreA:0, scoreB:0, status:'live', events:[], createdAt: now, startedAt: now, finishedAt: null, updatedAt: now
   };
+
+  // Initialize volleyball-specific fields so we can track multiple sets
+  if(sport === 'volleyball'){
+    doc.volleyballSets = [];
+    doc.currentSetNumber = 1;
+  }
+
   try{
     await matchRef.set(doc);
     document.getElementById('startModal').classList.remove('show');
