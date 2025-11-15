@@ -978,11 +978,12 @@
   </div>
 </div>
 
-<div id="scoreSheet" aria-hidden="true">
+  <div id="scoreSheet" aria-hidden="true">
   <div id="scoreHead">
     <div>
       <div id="sheetTitle" style="font-weight:900;font-size:18px;color:var(--accent)"></div>
       <div id="sheetMeta" class="muted" style="font-size:13px"></div>
+      <div id="refereeLine" class="muted" style="font-size:13px;margin-top:2px"></div>
       <div id="winnerLoserHeader" style="margin-top:4px;font-size:13px"></div>
     </div>
     <div>
@@ -2001,6 +2002,9 @@ function showMatchInfo(matchId){
 
   const lines = [];
   lines.push(`<div><strong>Score:</strong> ${scoreA} - ${scoreB}</div>`);
+  if(m.referee){
+    lines.push(`<div><strong>Referee:</strong> ${escapeHtml(m.referee)}</div>`);
+  }
 
   // Volleyball sets summary, if available
   if(m.sport === 'volleyball' && Array.isArray(m.volleyballSets) && m.volleyballSets.length > 0){
@@ -2232,6 +2236,18 @@ function openScoreSheet(matchId){
   document.getElementById('statusLabel').innerText = (m.status||'').toUpperCase();
   document.getElementById('timeLabel').innerText = new Date(m.startedAt||m.createdAt).toLocaleString();
   document.getElementById('eventLog').innerHTML = (m.events || []).map(ev=>`<div>${ev}</div>`).join('');
+
+  // Referee line
+  const refLine = document.getElementById('refereeLine');
+  if(refLine){
+    if(m.referee){
+      refLine.style.display = 'block';
+      refLine.textContent = `scored by: ${m.referee}`;
+    } else {
+      refLine.style.display = 'none';
+      refLine.textContent = '';
+    }
+  }
   
   // === MODIFIED: Add dynamic buttons ===
   const sport = m.sport;
@@ -2757,12 +2773,15 @@ document.getElementById('startCreate').addEventListener('click', async ()=>{
   const age = (document.getElementById('mAge')||{value:''}).value;
   const teamA = ((document.getElementById('mTeamA')||{value:''}).value||'Team A').trim();
   const teamB = ((document.getElementById('mTeamB')||{value:''}).value||'Team B').trim();
+  const referee = (getSessionEmail() || '').trim();
   if(!sport || !age || !teamA || !teamB){ alert('Fill all fields'); return; }
   const matchRef = rtdb.ref('matches').push();
   const matchId = matchRef.key;
   const now = Date.now();
   const doc = {
-    sport, age, teamA, teamB, scoreA:0, scoreB:0, status:'live', events:[], createdAt: now, startedAt: now, finishedAt: null, updatedAt: now
+    sport, age, teamA, teamB,
+    referee: referee || null,
+    scoreA:0, scoreB:0, status:'live', events:[], createdAt: now, startedAt: now, finishedAt: null, updatedAt: now
   };
 
   // Initialize volleyball-specific fields so we can track multiple sets
