@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>GO 2025 — Scoring (With Auth & Roles)</title>
 
-<!-- Firebase (compat libs) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -72,7 +71,7 @@
   #scoreSheet.show{display:block}
   #scoreHead{display:flex;justify-content:space-between;align-items:center}
   .scoreCenter{font-size:40px;font-weight:900;color:var(--accent)}
-  .scoreControls{display:flex;gap:8px;align-items:center;margin-top:12px}
+  .scoreControls{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap} /* Added flex-wrap */
   .teamBlock{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.04);display:flex;flex-direction:column;gap:8px;align-items:center}
 
   /* Event log */
@@ -98,7 +97,6 @@
 </head>
 <body>
 
-<!-- Sidebar -->
 <div class="sidebar">
   <div class="brand">
     <div class="logo">GO</div>
@@ -113,7 +111,6 @@
     <button data-tab="sports">Sports</button>
     <button data-tab="scoring">Scoring</button>
     <button data-tab="matches">Matches</button>
-    <!-- Live tab kept (decision: it's present) -->
     <button data-tab="live">Live</button>
     <button data-tab="users">Users</button>
     <div class="grow"></div>
@@ -134,7 +131,6 @@
   </nav>
 </div>
 
-<!-- Main -->
 <div class="main">
   <header>
     <h1>GO 2025 — Scoring</h1>
@@ -143,7 +139,6 @@
 
   <div style="height:14px"></div>
 
-  <!-- TABS -->
   <section id="home" class="card tab" style="display:block">
     <h2>Welcome</h2>
     <p class="muted">Use the Scoring tab to start a match, or go to Matches to view Live / Finished matches.</p>
@@ -157,7 +152,6 @@
     </div>
   </section>
 
-  <!-- Scoring hub -->
   <section id="scoring" class="tab" style="display:none">
     <div class="card">
       <h2>Scoring Hub</h2>
@@ -178,7 +172,6 @@
     </div>
   </section>
 
-  <!-- Matches tab -->
   <section id="matches" class="tab" style="display:none">
     <div class="card">
       <h2>Matches</h2>
@@ -200,7 +193,6 @@
     </div>
   </section>
 
-  <!-- Live quick view -->
   <section id="live" class="tab" style="display:none">
     <div class="card">
       <h2>Live Matches</h2>
@@ -214,7 +206,6 @@
     </div>
   </section>
 
-  <!-- Users tab -->
   <section id="users" class="tab" style="display:none">
     <div class="card">
       <h2>Users</h2>
@@ -230,7 +221,6 @@
   <footer class="muted">Made for GO 2025 • Red & White theme</footer>
 </div>
 
-<!-- Start Scoring Modal -->
 <div id="startModal" class="modal" role="dialog" aria-modal="true">
   <h3>Start Scoring</h3>
 
@@ -268,7 +258,6 @@
   </div>
 </div>
 
-<!-- Score Sheet (floating) -->
 <div id="scoreSheet" aria-hidden="true">
   <div id="scoreHead">
     <div>
@@ -288,11 +277,8 @@
       <div id="teamASchool" class="muted" style="font-size:13px"></div>
       <div style="height:8px"></div>
       <div style="font-size:32px;font-weight:900" id="teamAScore">0</div>
-      <div class="scoreControls">
-        <button id="incA" class="btn">+1</button>
-        <button id="decA" class="btn">-1</button>
-        <button id="undoA" class="btn">Undo</button>
-      </div>
+      <div class="scoreControls" id="teamAControls">
+        </div>
     </div>
 
     <div style="width:24px;display:flex;align-items:center;justify-content:center">
@@ -304,11 +290,8 @@
       <div id="teamBSchool" class="muted" style="font-size:13px"></div>
       <div style="height:8px"></div>
       <div style="font-size:32px;font-weight:900" id="teamBScore">0</div>
-      <div class="scoreControls">
-        <button id="incB" class="btn">+1</button>
-        <button id="decB" class="btn">-1</button>
-        <button id="undoB" class="btn">Undo</button>
-      </div>
+      <div class="scoreControls" id="teamBControls">
+        </div>
     </div>
   </div>
 
@@ -336,7 +319,6 @@
 
 </div>
 
-<!-- Auth overlay (Register / Login) -->
 <div class="overlay" id="authOverlay" style="display:none">
   <div class="pwbox card" style="text-align:left;max-width:420px">
     <img alt="logo" src="" style="height:48px;margin-bottom:8px"/>
@@ -372,7 +354,6 @@
         Sign in with Google
       </button>
 
-      <!-- Admin/bypass code (optional) -->
       <div style="margin-top:10px">
         <label style="font-size:13px;color:var(--muted)">Upgrade / Bypass code (optional)</label>
         <div style="display:flex;gap:8px;margin-top:6px">
@@ -1088,6 +1069,27 @@ function renderLiveList(data){
 
 /* Score sheet behavior (RTDB) — included from original file */
 let activeMatchId = null;
+
+/* =========================
+   NEW SCORING BUTTON HELPERS
+   ========================= */
+function createScoreButton(text, side, delta, parentEl){
+  const btn = document.createElement('button');
+  btn.innerText = text;
+  btn.className = 'btn';
+  // Pass the button's text as the eventLabel
+  btn.addEventListener('click', ()=> applyScore(side, delta, text)); 
+  parentEl.appendChild(btn);
+}
+
+function createUndoButton(side, parentEl){
+  const btn = document.createElement('button');
+  btn.innerText = 'Undo';
+  btn.className = 'btn';
+  btn.addEventListener('click', ()=> undoLast(side));
+  parentEl.appendChild(btn);
+}
+
 function openScoreSheet(matchId){
   activeMatchId = matchId;
   const m = lastMatchSnapshot[matchId];
@@ -1102,6 +1104,84 @@ function openScoreSheet(matchId){
   document.getElementById('statusLabel').innerText = (m.status||'').toUpperCase();
   document.getElementById('timeLabel').innerText = new Date(m.startedAt||m.createdAt).toLocaleString();
   document.getElementById('eventLog').innerHTML = (m.events || []).map(ev=>`<div>${ev}</div>`).join('');
+  
+  // === MODIFIED: Add dynamic buttons ===
+  const sport = m.sport;
+  const teamAControls = document.getElementById('teamAControls');
+  const teamBControls = document.getElementById('teamBControls');
+  teamAControls.innerHTML = '';
+  teamBControls.innerHTML = '';
+
+  // Populate controls based on sport
+  switch(sport){
+    case 'basketball':
+      createScoreButton('+1 (FT)', 'A', 1, teamAControls);
+      createScoreButton('+2 (FG)', 'A', 2, teamAControls);
+      createScoreButton('+3 (3PT)', 'A', 3, teamAControls);
+      createUndoButton('A', teamAControls);
+
+      createScoreButton('+1 (FT)', 'B', 1, teamBControls);
+      createScoreButton('+2 (FG)', 'B', 2, teamBControls);
+      createScoreButton('+3 (3PT)', 'B', 3, teamBControls);
+      createUndoButton('B', teamBControls);
+      break;
+
+    case 'kabaddi':
+      createScoreButton('+1 Raid', 'A', 1, teamAControls);
+      createScoreButton('+1 Bonus', 'A', 1, teamAControls);
+      createScoreButton('+1 Tackle', 'A', 1, teamAControls);
+      createScoreButton('+2 All-Out', 'A', 2, teamAControls);
+      createUndoButton('A', teamAControls);
+
+      createScoreButton('+1 Raid', 'B', 1, teamBControls);
+      createScoreButton('+1 Bonus', 'B', 1, teamBControls);
+      createScoreButton('+1 Tackle', 'B', 1, teamBControls);
+      createScoreButton('+2 All-Out', 'B', 2, teamBControls);
+      createUndoButton('B', teamBControls);
+      break;
+
+    case 'taekwondo':
+      createScoreButton('+1 Punch', 'A', 1, teamAControls);
+      createScoreButton('+1 Penalty', 'A', 1, teamAControls);
+      createScoreButton('+2 Kick Torso', 'A', 2, teamAControls);
+      createScoreButton('+3 Kick Head', 'A', 3, teamAControls);
+      createScoreButton('+4 Spin Torso', 'A', 4, teamAControls);
+      createScoreButton('+5 Spin Head', 'A', 5, teamAControls);
+      createUndoButton('A', teamAControls);
+      
+      createScoreButton('+1 Punch', 'B', 1, teamBControls);
+      createScoreButton('+1 Penalty', 'B', 1, teamBControls);
+      createScoreButton('+2 Kick Torso', 'B', 2, teamBControls);
+      createScoreButton('+3 Kick Head', 'B', 3, teamBControls);
+      createScoreButton('+4 Spin Torso', 'B', 4, teamBControls);
+      createScoreButton('+5 Spin Head', 'B', 5, teamBControls);
+      createUndoButton('B', teamBControls);
+      break;
+
+    case 'carrom_single':
+    case 'carrom_double':
+      createScoreButton('+1 Coin', 'A', 1, teamAControls);
+      createScoreButton('+3 Queen', 'A', 3, teamAControls);
+      createUndoButton('A', teamAControls);
+
+      createScoreButton('+1 Coin', 'B', 1, teamBControls);
+      createScoreButton('+3 Queen', 'B', 3, teamBControls);
+      createUndoButton('B', teamBControls);
+      break;
+
+    default:
+      // Generic controls
+      createScoreButton('+1', 'A', 1, teamAControls);
+      createScoreButton('-1', 'A', -1, teamAControls);
+      createUndoButton('A', teamAControls);
+      
+      createScoreButton('+1', 'B', 1, teamBControls);
+      createScoreButton('-1', 'B', -1, teamBControls);
+      createUndoButton('B', teamBControls);
+      break;
+  }
+  // === END MODIFICATION ===
+  
   document.getElementById('scoreSheet').classList.add('show');
 }
 
@@ -1130,14 +1210,27 @@ function pushEventToMatch(matchId, text){
   return t;
 }
 
-function applyScore(side, delta){
+// === MODIFIED: Added eventLabel parameter ===
+function applyScore(side, delta, eventLabel){
   if(!activeMatchId) return;
   const ref = rtdb.ref(`matches/${activeMatchId}`);
   ref.transaction(match=>{
     if(!match) return match;
     if(side==='A'){ match.scoreA = Math.max(0, (match.scoreA||0) + delta); }
     else { match.scoreB = Math.max(0, (match.scoreB||0) + delta); }
-    const txt = `${side==='A'?'Team A':'Team B'} ${delta>0?'+':'-'}${Math.abs(delta)}`;
+    
+    // --- MODIFIED: Use eventLabel for log ---
+    let txt = '';
+    const teamName = side==='A' ? 'Team A' : 'Team B';
+    if(eventLabel){
+      // Use the custom label (e.g., "+3 (3PT)")
+      txt = `${teamName} ${eventLabel}`;
+    } else {
+      // Fallback for generic
+      txt = `${teamName} ${delta>0?'+':'-'}${Math.abs(delta)}`;
+    }
+    // --- END MOD ---
+
     match.events = match.events || [];
     match.events.unshift(`${(new Date()).toLocaleTimeString()} — ${txt}`);
     match.updatedAt = Date.now();
@@ -1153,13 +1246,13 @@ function applyScore(side, delta){
   });
 }
 
-document.getElementById('incA').addEventListener('click', ()=> applyScore('A', 1));
-document.getElementById('decA').addEventListener('click', ()=> applyScore('A', -1));
-document.getElementById('incB').addEventListener('click', ()=> applyScore('B', 1));
-document.getElementById('decB').addEventListener('click', ()=> applyScore('B', -1));
-
-document.getElementById('undoA').addEventListener('click', ()=> undoLast('A'));
-document.getElementById('undoB').addEventListener('click', ()=> undoLast('B'));
+// === MODIFIED: Removed static button listeners ===
+// document.getElementById('incA').addEventListener('click', ()=> applyScore('A', 1));
+// document.getElementById('decA').addEventListener('click', ()=> applyScore('A', -1));
+// document.getElementById('incB').addEventListener('click', ()=> applyScore('B', 1));
+// document.getElementById('decB').addEventListener('click', ()=> applyScore('B', -1));
+// document.getElementById('undoA').addEventListener('click', ()=> undoLast('A'));
+// document.getElementById('undoB').addEventListener('click', ()=> undoLast('B'));
 
 function undoLast(side){
   if(!activeMatchId) return;
@@ -1174,9 +1267,15 @@ function undoLast(side){
     }
     if(idx===-1) return match;
     const ev = match.events.splice(idx,1)[0];
-    const m = ev.match(/([+-])(\d+)/);
+    
+    // Try to find score from label like (+X) or +X
+    const m = ev.match(/\([+-]?(\d+)\)/) || ev.match(/[+-](\d+)/);
     let delta = 0;
-    if(m){ delta = parseInt(m[2],10); if(m[1]==='-') delta = -delta; }
+    if(m){ 
+      delta = parseInt(m[1],10); 
+      if(ev.includes('-')) delta = -delta; 
+    }
+    
     if(side==='A'){ match.scoreA = Math.max(0, (match.scoreA||0) - delta); }
     else { match.scoreB = Math.max(0, (match.scoreB||0) - delta); }
     match.events.unshift(`${(new Date()).toLocaleTimeString()} — UNDO ${side}`);
