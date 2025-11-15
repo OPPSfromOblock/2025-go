@@ -374,6 +374,17 @@
 
     </div>
 
+
+      <!-- Admin/bypass code (optional) -->
+      <div style="margin-top:10px">
+        <label style="font-size:13px;color:var(--muted)">Upgrade / Bypass code (admins only)</label>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input id="upgradeCode" placeholder="Enter code (admins only)" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)"/>
+          <button id="codeAccessBtn" class="btn primary">Enter Code</button>
+        </div>
+        <div id="codeAccessMsg" class="small-muted" style="display:none;margin-top:6px"></div>
+      </div>
+
     <div id="authNote" style="margin-top:10px;color:var(--muted);font-size:13px">
       We use Firebase passwordless email sign-in (magic link). Register to request access — admins approve registered users.
     </div>
@@ -439,9 +450,6 @@ const loginMsg = document.getElementById('loginMsg');
 const regGoogleBtn = document.getElementById('regGoogleBtn');
 const loginGoogleBtn = document.getElementById('loginGoogleBtn');
 
-const // upgradeCode_removedInput = document.getElementById('// upgradeCode_removed');
-const // codeAccessBtn_removed = document.getElementById('// codeAccessBtn_removed');
-const // codeAccessMsg_removed = document.getElementById('// codeAccessMsg_removed');
 
 const signedOutArea = document.getElementById('signedOut');
 const signedInArea = document.getElementById('signedIn');
@@ -648,7 +656,7 @@ async function handleGoogleSignIn(){
         return;
       }
       // whitelisted -> allow and show app
-      authOverlay.style.display = 'none';
+      hideAuthOverlay();
       showSignedInUIForEmail(email);
       // close overlay and show app
     }
@@ -679,25 +687,79 @@ if (auth.isSignInWithEmailLink && auth.isSignInWithEmailLink(window.location.hre
         await auth.signOut();
         alert('Your account is not whitelisted yet. Request is in queue.');
         await addToPending(email);
-        authOverlay.style.display = 'flex';
+        showAuthOverlay();
         return;
       }
-      authOverlay.style.display = 'none';
+      hideAuthOverlay();
       showSignedInUIForEmail(email);
     }).catch(err=>{
       console.error('Error completing sign-in:', err);
       alert('Sign-in failed. See console.');
-      authOverlay.style.display = 'flex';
+      showAuthOverlay();
     });
   } else {
     // no email — show overlay
-    authOverlay.style.display = 'flex';
+    showAuthOverlay();
   }
 }
 
 /* =========================
    Auth state & session helpers
 */
+
+/* Helper to show/hide auth overlay safely (ensures it is clickable and visible) */
+function showAuthOverlay(){
+  try{
+    if(authOverlay){
+      showAuthOverlay();
+      authOverlay.style.opacity = '1';
+      authOverlay.style.pointerEvents = 'auto';
+      authOverlay.style.zIndex = '9999';
+    }
+  }catch(e){ console.warn('showAuthOverlay', e); }
+}
+function hideAuthOverlay(){
+  try{
+    if(authOverlay){
+      hideAuthOverlay();
+      authOverlay.style.pointerEvents = 'none';
+    }
+  }catch(e){ console.warn('hideAuthOverlay', e); }
+}
+
+/* Admin bypass: allow quick admin session with code '123' */
+(function registerBypassListener(){
+  // will run at script parse time; elements might not exist yet, so attach after DOM ready
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const codeBtn = document.getElementById('codeAccessBtn');
+    const codeInput = document.getElementById('upgradeCode');
+    const codeMsg = document.getElementById('codeAccessMsg');
+    if(codeBtn && codeInput){
+      codeBtn.addEventListener('click', ()=>{
+        const code = (codeInput.value||'').trim();
+        if(!code){
+          if(codeMsg){ codeMsg.style.display='block'; codeMsg.style.color='red'; codeMsg.innerText='Enter code'; }
+          return;
+        }
+        if(code === '123'){
+          // grant temporary admin session
+          localStorage.setItem('go_currentEmail','bypass@local');
+          localStorage.setItem('go_currentRole','admin');
+          localStorage.setItem('go_displayName','Admin');
+          if(codeMsg){ codeMsg.style.display='block'; codeMsg.style.color='green'; codeMsg.innerText='Admin bypass accepted'; }
+          // update UI
+          showUserBadge();
+          applyRoleToUI('admin');
+          loadUsersTab().catch(()=>{});
+          hideAuthOverlay();
+        } else {
+          if(codeMsg){ codeMsg.style.display='block'; codeMsg.style.color='red'; codeMsg.innerText='Invalid code'; }
+        }
+      });
+    }
+  });
+})();
+
 function getSessionEmail(){
   // prefer firebase user if signed in, else localStorage fallback for code bypass
   try{
@@ -728,7 +790,7 @@ btnSignOut.addEventListener('click', async ()=>{
   clearSession();
   updateSignedInSignedOutUI(false);
   applyRoleRestrictions(null); setScoringEnabled(((null) === 'teacher' || (null) === 'admin')) ;
-  if(authOverlay) authOverlay.style.display = 'flex';
+  if(authOverlay) showAuthOverlay();
 });
 
 /* Show signed-in UI (used after successful sign-in) */
@@ -751,7 +813,7 @@ async function showSignedInUIForEmail(email){
     updateSignedInSignedOutUI(true);
     applyRoleToUI(role);
     if(role === 'admin') await loadUsersTab();
-    authOverlay.style.display = 'none';
+    hideAuthOverlay();
   }catch(e){ console.error(e); alert('Sign-in succeeded but something failed. See console.'); }
 }
 
@@ -887,7 +949,7 @@ auth.onAuthStateChanged(async user=>{
       await addToPending(email);
       await auth.signOut();
       alert('Your account is not yet approved. A request has been placed. Please wait for approval.');
-      authOverlay.style.display = 'flex';
+      showAuthOverlay();
       return;
     }
     // user is whitelisted
@@ -1255,7 +1317,7 @@ document.getElementById('startCreate').addEventListener('click', async ()=>{
 */
 (function init(){
   // simple default UI
-  setTimeout(()=>{ if(!auth.currentUser && !localStorage.getItem('go_currentEmail')) authOverlay.style.display='flex'; }, 600);
+  setTimeout(()=>{ if(!auth.currentUser && !localStorage.getItem('go_currentEmail')) showAuthOverlay(); }, 600);
 })();
 </script>
 </body>
