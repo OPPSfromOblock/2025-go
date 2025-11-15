@@ -79,29 +79,15 @@
   .log{max-height:220px;overflow:auto;background:rgba(0,0,0,0.02);padding:8px;border-radius:8px;font-size:13px}
 
   /* Auth overlay */
- /* overlay base + transition */
-.overlay{
-  position:fixed;
-  inset:0;
-  background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-  /* default hidden */
-  display:none;
-  opacity:0;
-  pointer-events:none;
-  z-index:3000;
-  align-items:center;
-  justify-content:center;
-  backdrop-filter: blur(6px);
-  transition: opacity 0.22s ease;
-}
-
-/* visible state - fades in/out */
-.overlay.visible {
-  display:flex;
-  opacity:1;
-  pointer-events:auto;
-}
-
+  .overlay{
+    position:fixed;inset:0;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    display:none;align-items:center;justify-content:center;z-index:3000;
+    backdrop-filter: blur(6px);
+  }
+  .pwbox{background:#fff;padding:20px;border-radius:12px;width:420px;border:1px solid rgba(0,0,0,0.06);text-align:left}
+  .pwbox h2{color:var(--accent);margin-bottom:8px}
+  .pwbox input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);margin-top:6px}
+  .small-muted{font-size:13px;color:var(--muted)}
 
   /* Responsive */
   @media (max-width:900px){
@@ -386,18 +372,16 @@
         Sign in with Google
       </button>
 
-    </div>
-
-
       <!-- Admin/bypass code (optional) -->
       <div style="margin-top:10px">
-        <label style="font-size:13px;color:var(--muted)">Upgrade / Bypass code (admins only)</label>
+        <label style="font-size:13px;color:var(--muted)">Upgrade / Bypass code (optional)</label>
         <div style="display:flex;gap:8px;margin-top:6px">
           <input id="upgradeCode" placeholder="Enter code (admins only)" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)"/>
           <button id="codeAccessBtn" class="btn primary">Enter Code</button>
         </div>
         <div id="codeAccessMsg" class="small-muted" style="display:none;margin-top:6px"></div>
       </div>
+    </div>
 
     <div id="authNote" style="margin-top:10px;color:var(--muted);font-size:13px">
       We use Firebase passwordless email sign-in (magic link). Register to request access — admins approve registered users.
@@ -430,15 +414,13 @@ const db = firebase.firestore();  // used for whitelist/pending/registeredUsers
 /* =========================
    Constants & state
    ========================= */
-// UPGRADE_ADMIN_CODE removed
-// temporary bypass code for admin sessions (change/remove in production)
+const UPGRADE_ADMIN_CODE = '123'; // temporary bypass code for admin sessions (change/remove in production)
 const actionCodeSettings = {
   url: window.location.href,
   handleCodeInApp: true,
 };
 
-// // localSessionRole_removed removed
-// used when bypass code grants session role
+let localSessionRole = null; // used when bypass code grants session role
 
 /* =========================
    DOM refs
@@ -464,6 +446,9 @@ const loginMsg = document.getElementById('loginMsg');
 const regGoogleBtn = document.getElementById('regGoogleBtn');
 const loginGoogleBtn = document.getElementById('loginGoogleBtn');
 
+const upgradeCodeInput = document.getElementById('upgradeCode');
+const codeAccessBtn = document.getElementById('codeAccessBtn');
+const codeAccessMsg = document.getElementById('codeAccessMsg');
 
 const signedOutArea = document.getElementById('signedOut');
 const signedInArea = document.getElementById('signedIn');
@@ -597,8 +582,8 @@ window.removeWhitelist = async function(id){
 /* =========================
    Auth UI interactions
 */
-btnShowAuth.addEventListener('click', () => { showAuthOverlay(); tabRegister.click(); });
-authClose.addEventListener('click', ()=> { hideAuthOverlay(); });
+btnShowAuth.addEventListener('click', ()=> { authOverlay.style.display='flex'; tabRegister.click(); });
+authClose.addEventListener('click', ()=> { authOverlay.style.display='none'; });
 
 // Auth tabs
 tabRegister.addEventListener('click', ()=> { tabRegister.classList.add('primary'); tabLogin.classList.remove('primary'); registerForm.style.display='block'; loginForm.style.display='none'; });
@@ -670,7 +655,7 @@ async function handleGoogleSignIn(){
         return;
       }
       // whitelisted -> allow and show app
-      hideAuthOverlay();
+      authOverlay.style.display = 'none';
       showSignedInUIForEmail(email);
       // close overlay and show app
     }
@@ -683,7 +668,26 @@ if(regGoogleBtn) regGoogleBtn.addEventListener('click', handleGoogleSignIn);
 if(loginGoogleBtn) loginGoogleBtn.addEventListener('click', handleGoogleSignIn);
 
 // Admin bypass code (session-only)
-// // codeAccessBtn_removed listener removed
+codeAccessBtn.addEventListener('click', async ()=>{
+  const email = (loginEmail.value||'').trim().toLowerCase();
+  const code = (upgradeCodeInput.value||'').trim();
+  codeAccessMsg.style.display = 'block';
+  if(!email){ codeAccessMsg.style.color='red'; codeAccessMsg.innerText = 'Enter an email first.'; return; }
+  if(code !== UPGRADE_ADMIN_CODE){ codeAccessMsg.style.color='red'; codeAccessMsg.innerText = 'Invalid code.'; return; }
+  // grant session admin role (localStorage)
+  localStorage.setItem('go_currentEmail', email);
+  localStorage.setItem('go_currentRole', 'admin');
+  localStorage.setItem('go_displayName', email.split('@')[0] || email);
+  localSessionRole = 'admin';
+  codeAccessMsg.style.color='green';
+  codeAccessMsg.innerText = 'Temporary admin session granted for ' + email;
+  // hide overlay and update UI
+  authOverlay.style.display = 'none';
+  applyRoleToUI('admin');
+  showUserBadge();
+  await loadUsersTab();
+});
+
 // Handle passwordless email sign-in completion (if page loaded from email link)
 if (auth.isSignInWithEmailLink && auth.isSignInWithEmailLink(window.location.href)) {
   // complete sign-in
@@ -701,129 +705,25 @@ if (auth.isSignInWithEmailLink && auth.isSignInWithEmailLink(window.location.hre
         await auth.signOut();
         alert('Your account is not whitelisted yet. Request is in queue.');
         await addToPending(email);
-        showAuthOverlay();
+        authOverlay.style.display = 'flex';
         return;
       }
-      hideAuthOverlay();
+      authOverlay.style.display = 'none';
       showSignedInUIForEmail(email);
     }).catch(err=>{
       console.error('Error completing sign-in:', err);
       alert('Sign-in failed. See console.');
-      showAuthOverlay();
+      authOverlay.style.display = 'flex';
     });
   } else {
     // no email — show overlay
-    showAuthOverlay();
+    authOverlay.style.display = 'flex';
   }
 }
 
 /* =========================
    Auth state & session helpers
 */
-
-/* Helper to show/hide auth overlay safely (ensures it is clickable and visible) */
-function showAuthOverlay(){
-  try{
-    if(!authOverlay) authOverlay = document.getElementById('authOverlay');
-    if(authOverlay){
-      // ensure visible and start fade-in
-      authOverlay.classList.add('visible');
-      authOverlay.style.zIndex = '9999';
-    }
-  }catch(e){ console.warn('showAuthOverlay', e); }
-}
-
-function hideAuthOverlay(){
-  try{
-    if(!authOverlay) authOverlay = document.getElementById('authOverlay');
-    if(authOverlay){
-      // remove visible (starts CSS fade-out). After transition, element will be non-interactive (pointer-events:none).
-      authOverlay.classList.remove('visible');
-      // remove z-index after a short delay (longer than transition) to avoid visual flicker
-      setTimeout(()=>{ try{ authOverlay.style.zIndex=''; }catch(e){} }, 300);
-    }
-  }catch(e){ console.warn('hideAuthOverlay', e); }
-}
-document.addEventListener('DOMContentLoaded', function(){
-  try{
-    // ensure variables exist and point to actual elements
-    if(typeof authOverlay === 'undefined' || !authOverlay) authOverlay = document.getElementById('authOverlay');
-    if(typeof upgradeCodeInput === 'undefined' || !upgradeCodeInput) upgradeCodeInput = document.getElementById('upgradeCode');
-    if(typeof codeAccessBtn === 'undefined' || !codeAccessBtn) codeAccessBtn = document.getElementById('codeAccessBtn');
-    if(typeof codeAccessMsg === 'undefined' || !codeAccessMsg) codeAccessMsg = document.getElementById('codeAccessMsg');
-
-    // wire close button (defensive)
-    const closeBtn = document.getElementById('authClose');
-    if(closeBtn) closeBtn.addEventListener('click', () => hideAuthOverlay());
-
-    // ensure the "Sign in / Register" button opens the overlay
-    const showBtn = document.getElementById('btnShowAuth');
-    if(showBtn){
-      showBtn.removeEventListener && showBtn.removeEventListener('click', ()=>{}); // harmless try
-      showBtn.addEventListener('click', ()=> { showAuthOverlay(); if(tabRegister) tabRegister.click(); });
-    }
-
-    // wire bypass button
-    if(codeAccessBtn){
-      codeAccessBtn.addEventListener('click', function(){
-        const code = (upgradeCodeInput && upgradeCodeInput.value || '').trim();
-        if(!code){
-          if(codeAccessMsg){ codeAccessMsg.style.display='block'; codeAccessMsg.style.color='red'; codeAccessMsg.innerText='Enter code'; }
-          return;
-        }
-        if(code === '123'){
-          // grant temporary admin session
-          localStorage.setItem('go_currentEmail','bypass@local');
-          localStorage.setItem('go_currentRole','admin');
-          localStorage.setItem('go_displayName','Admin');
-          if(codeAccessMsg){ codeAccessMsg.style.display='block'; codeAccessMsg.style.color='green'; codeAccessMsg.innerText='Admin bypass accepted'; }
-          // update UI
-          showUserBadge();
-          applyRoleToUI('admin');
-          loadUsersTab().catch(()=>{});
-          hideAuthOverlay();
-        } else {
-          if(codeAccessMsg){ codeAccessMsg.style.display='block'; codeAccessMsg.style.color='red'; codeAccessMsg.innerText='Invalid code'; }
-        }
-      });
-    }
-  }catch(e){ console.warn('overlay init err', e); }
-});
-
-
-/* Admin bypass: allow quick admin session with code '123' */
-(function registerBypassListener(){
-  // will run at script parse time; elements might not exist yet, so attach after DOM ready
-  document.addEventListener('DOMContentLoaded', ()=>{
-    const codeBtn = document.getElementById('codeAccessBtn');
-    const codeInput = document.getElementById('upgradeCode');
-    const codeMsg = document.getElementById('codeAccessMsg');
-    if(codeBtn && codeInput){
-      codeBtn.addEventListener('click', ()=>{
-        const code = (codeInput.value||'').trim();
-        if(!code){
-          if(codeMsg){ codeMsg.style.display='block'; codeMsg.style.color='red'; codeMsg.innerText='Enter code'; }
-          return;
-        }
-        if(code === '123'){
-          // grant temporary admin session
-          localStorage.setItem('go_currentEmail','bypass@local');
-          localStorage.setItem('go_currentRole','admin');
-          localStorage.setItem('go_displayName','Admin');
-          if(codeMsg){ codeMsg.style.display='block'; codeMsg.style.color='green'; codeMsg.innerText='Admin bypass accepted'; }
-          // update UI
-          showUserBadge();
-          applyRoleToUI('admin');
-          loadUsersTab().catch(()=>{});
-          hideAuthOverlay();
-        } else {
-          if(codeMsg){ codeMsg.style.display='block'; codeMsg.style.color='red'; codeMsg.innerText='Invalid code'; }
-        }
-      });
-    }
-  });
-})();
-
 function getSessionEmail(){
   // prefer firebase user if signed in, else localStorage fallback for code bypass
   try{
@@ -833,7 +733,9 @@ function getSessionEmail(){
   return localStorage.getItem('go_currentEmail') || null;
 }
 function getSessionRole(){
-  return localStorage.getItem('go_currentRole') || null;
+  // prefer local admin bypass if present, else registeredUsers role in localStorage (set on sign-in)
+  const r1 = localSessionRole || localStorage.getItem('go_currentRole') || null;
+  return r1;
 }
 function setSessionForUser(email, role, displayName){
   if(email) localStorage.setItem('go_currentEmail', email.toLowerCase());
@@ -844,7 +746,7 @@ function clearSession(){
   localStorage.removeItem('go_currentEmail');
   localStorage.removeItem('go_currentRole');
   localStorage.removeItem('go_displayName');
-  // localSessionRole_removed = null;
+  localSessionRole = null;
 }
 
 btnSignOut.addEventListener('click', async ()=>{
@@ -853,8 +755,8 @@ btnSignOut.addEventListener('click', async ()=>{
   }catch(e){}
   clearSession();
   updateSignedInSignedOutUI(false);
-  applyRoleRestrictions(null); setScoringEnabled(((null) === 'teacher' || (null) === 'admin')) ;
-  if(authOverlay) showAuthOverlay();
+  restrictUIForRole(null);
+  if(authOverlay) authOverlay.style.display = 'flex';
 });
 
 /* Show signed-in UI (used after successful sign-in) */
@@ -877,7 +779,7 @@ async function showSignedInUIForEmail(email){
     updateSignedInSignedOutUI(true);
     applyRoleToUI(role);
     if(role === 'admin') await loadUsersTab();
-    hideAuthOverlay();
+    authOverlay.style.display = 'none';
   }catch(e){ console.error(e); alert('Sign-in succeeded but something failed. See console.'); }
 }
 
@@ -914,74 +816,35 @@ function showUserBadge(){
    - queued / not whitelisted => only Home tab visible
    - user / teacher / admin => all tabs visible
 */
-
-function applyRoleRestrictions(role){
-  // role: 'queued' | 'user' | 'teacher' | 'admin' | null
-  const tabs = document.querySelectorAll('nav button[data-tab]');
-  tabs.forEach(btn => {
-    const tab = btn.dataset.tab;
-    // default hide
-    btn.style.display = 'none';
-    // queued: only home
+function restrictUIForRole(role){
+  // role may be 'queued' | 'user' | 'teacher' | 'admin' | null
+  // hide/disable nav buttons accordingly
+  const nav = document.querySelectorAll('.sidebar nav button[data-tab]');
+  nav.forEach(b=>{
+    const tab = b.dataset.tab;
     if(role === 'queued' || !role){
-      if(tab === 'home') btn.style.display = 'block';
-    }
-    // user: home, sports, matches, live
-    else if(role === 'user'){
-      if(['home','sports','matches','live'].includes(tab)) btn.style.display = 'block';
-    }
-    // teacher: same as user + scoring
-    else if(role === 'teacher'){
-      if(['home','sports','matches','live','scoring'].includes(tab)) btn.style.display = 'block';
-    }
-    // admin: all tabs
-    else if(role === 'admin'){
-      btn.style.display = 'block';
+      // show only home, hide/disable others except home
+      if(tab === 'home') { b.classList.remove('disabled'); b.style.display='block'; }
+      else { b.classList.add('disabled'); /* optionally hide */ b.style.display='none'; }
+    } else {
+      // show all tabs
+      b.classList.remove('disabled');
+      b.style.display='block';
     }
   });
-
-  // Users tab visibility - only admins
-  try{
-    if(typeof usersTabBtn !== 'undefined' && usersTabBtn){
-      if(role === 'admin') usersTabBtn.style.display = 'block';
-      else usersTabBtn.style.display = 'none';
-    }
-  }catch(e){}
-
-  // ensure current visible tab is allowed
+  // Also ensure currently visible tab is allowed
   const active = document.querySelector('.tab[style*="display:block"]');
-  if(active){
-    const tabBtn = document.querySelector(`nav button[data-tab="${active.id}"]`);
-    if(tabBtn && tabBtn.style.display === 'none'){
-      showTab('home');
-    }
+  if(role === 'queued' && active && active.id !== 'home'){
+    showTab('home');
   }
 }
 
-
 /* apply role to UI after sign-in */
-
 function applyRoleToUI(role){
   if(!role) role = null;
   localStorage.setItem('go_currentRole', role || '');
   showUserBadge();
-  applyRoleRestrictions(role);
-  // Enable scoring only for teacher and admin
-  const scoringAllowed = (role === 'teacher' || role === 'admin');
-  setScoringEnabled(scoringAllowed);
-}
-
-
-
-function setScoringEnabled(enabled){
-  const controlIds = ['btnStartScoring','incA','decA','incB','decB','undoA','undoB','startCreate','finishMatch','resetMatch','saveProgress'];
-  controlIds.forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.disabled = !enabled;
-  });
-  // hide start scoring button for roles without scoring permission
-  const btn = document.getElementById('btnStartScoring');
-  if(btn) btn.style.display = enabled ? 'inline-block' : 'none';
+  restrictUIForRole(role);
 }
 
 /* On page load, restore session if any in localStorage */
@@ -994,11 +857,11 @@ function setScoringEnabled(enabled){
     userEmailEl.innerText = email;
     signedInArea.style.display = 'block';
     signedOutArea.style.display = 'none';
-    applyRoleRestrictions(role || 'queued'); setScoringEnabled(((role || 'queued') === 'teacher' || (role || 'queued') === 'admin')) ;
+    restrictUIForRole(role || 'queued');
   } else {
     signedInArea.style.display = 'none';
     signedOutArea.style.display = 'block';
-    applyRoleRestrictions(null); setScoringEnabled(((null) === 'teacher' || (null) === 'admin')) ;
+    restrictUIForRole(null);
   }
 })();
 
@@ -1013,7 +876,7 @@ auth.onAuthStateChanged(async user=>{
       await addToPending(email);
       await auth.signOut();
       alert('Your account is not yet approved. A request has been placed. Please wait for approval.');
-      showAuthOverlay();
+      authOverlay.style.display = 'flex';
       return;
     }
     // user is whitelisted
@@ -1381,7 +1244,7 @@ document.getElementById('startCreate').addEventListener('click', async ()=>{
 */
 (function init(){
   // simple default UI
-  setTimeout(()=>{ if(!auth.currentUser && !localStorage.getItem('go_currentEmail')) showAuthOverlay(); }, 600);
+  setTimeout(()=>{ if(!auth.currentUser && !localStorage.getItem('go_currentEmail')) authOverlay.style.display='flex'; }, 600);
 })();
 </script>
 </body>
