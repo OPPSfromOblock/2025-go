@@ -372,15 +372,6 @@
         Sign in with Google
       </button>
 
-      <!-- Admin/bypass code (optional) -->
-      <div style="margin-top:10px">
-        <label style="font-size:13px;color:var(--muted)">Upgrade / Bypass code (optional)</label>
-        <div style="display:flex;gap:8px;margin-top:6px">
-          <input id="upgradeCode" placeholder="Enter code (admins only)" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)"/>
-          <button id="codeAccessBtn" class="btn primary">Enter Code</button>
-        </div>
-        <div id="codeAccessMsg" class="small-muted" style="display:none;margin-top:6px"></div>
-      </div>
     </div>
 
     <div id="authNote" style="margin-top:10px;color:var(--muted);font-size:13px">
@@ -414,13 +405,15 @@ const db = firebase.firestore();  // used for whitelist/pending/registeredUsers
 /* =========================
    Constants & state
    ========================= */
-const UPGRADE_ADMIN_CODE = '123'; // temporary bypass code for admin sessions (change/remove in production)
+// UPGRADE_ADMIN_CODE removed
+// temporary bypass code for admin sessions (change/remove in production)
 const actionCodeSettings = {
   url: window.location.href,
   handleCodeInApp: true,
 };
 
-let localSessionRole = null; // used when bypass code grants session role
+// // localSessionRole_removed removed
+// used when bypass code grants session role
 
 /* =========================
    DOM refs
@@ -446,9 +439,9 @@ const loginMsg = document.getElementById('loginMsg');
 const regGoogleBtn = document.getElementById('regGoogleBtn');
 const loginGoogleBtn = document.getElementById('loginGoogleBtn');
 
-const upgradeCodeInput = document.getElementById('upgradeCode');
-const codeAccessBtn = document.getElementById('codeAccessBtn');
-const codeAccessMsg = document.getElementById('codeAccessMsg');
+const // upgradeCode_removedInput = document.getElementById('// upgradeCode_removed');
+const // codeAccessBtn_removed = document.getElementById('// codeAccessBtn_removed');
+const // codeAccessMsg_removed = document.getElementById('// codeAccessMsg_removed');
 
 const signedOutArea = document.getElementById('signedOut');
 const signedInArea = document.getElementById('signedIn');
@@ -668,26 +661,7 @@ if(regGoogleBtn) regGoogleBtn.addEventListener('click', handleGoogleSignIn);
 if(loginGoogleBtn) loginGoogleBtn.addEventListener('click', handleGoogleSignIn);
 
 // Admin bypass code (session-only)
-codeAccessBtn.addEventListener('click', async ()=>{
-  const email = (loginEmail.value||'').trim().toLowerCase();
-  const code = (upgradeCodeInput.value||'').trim();
-  codeAccessMsg.style.display = 'block';
-  if(!email){ codeAccessMsg.style.color='red'; codeAccessMsg.innerText = 'Enter an email first.'; return; }
-  if(code !== UPGRADE_ADMIN_CODE){ codeAccessMsg.style.color='red'; codeAccessMsg.innerText = 'Invalid code.'; return; }
-  // grant session admin role (localStorage)
-  localStorage.setItem('go_currentEmail', email);
-  localStorage.setItem('go_currentRole', 'admin');
-  localStorage.setItem('go_displayName', email.split('@')[0] || email);
-  localSessionRole = 'admin';
-  codeAccessMsg.style.color='green';
-  codeAccessMsg.innerText = 'Temporary admin session granted for ' + email;
-  // hide overlay and update UI
-  authOverlay.style.display = 'none';
-  applyRoleToUI('admin');
-  showUserBadge();
-  await loadUsersTab();
-});
-
+// // codeAccessBtn_removed listener removed
 // Handle passwordless email sign-in completion (if page loaded from email link)
 if (auth.isSignInWithEmailLink && auth.isSignInWithEmailLink(window.location.href)) {
   // complete sign-in
@@ -733,9 +707,7 @@ function getSessionEmail(){
   return localStorage.getItem('go_currentEmail') || null;
 }
 function getSessionRole(){
-  // prefer local admin bypass if present, else registeredUsers role in localStorage (set on sign-in)
-  const r1 = localSessionRole || localStorage.getItem('go_currentRole') || null;
-  return r1;
+  return localStorage.getItem('go_currentRole') || null;
 }
 function setSessionForUser(email, role, displayName){
   if(email) localStorage.setItem('go_currentEmail', email.toLowerCase());
@@ -746,7 +718,7 @@ function clearSession(){
   localStorage.removeItem('go_currentEmail');
   localStorage.removeItem('go_currentRole');
   localStorage.removeItem('go_displayName');
-  localSessionRole = null;
+  // localSessionRole_removed = null;
 }
 
 btnSignOut.addEventListener('click', async ()=>{
@@ -755,7 +727,7 @@ btnSignOut.addEventListener('click', async ()=>{
   }catch(e){}
   clearSession();
   updateSignedInSignedOutUI(false);
-  restrictUIForRole(null);
+  applyRoleRestrictions(null); setScoringEnabled(((null) === 'teacher' || (null) === 'admin')) ;
   if(authOverlay) authOverlay.style.display = 'flex';
 });
 
@@ -816,35 +788,74 @@ function showUserBadge(){
    - queued / not whitelisted => only Home tab visible
    - user / teacher / admin => all tabs visible
 */
-function restrictUIForRole(role){
-  // role may be 'queued' | 'user' | 'teacher' | 'admin' | null
-  // hide/disable nav buttons accordingly
-  const nav = document.querySelectorAll('.sidebar nav button[data-tab]');
-  nav.forEach(b=>{
-    const tab = b.dataset.tab;
+
+function applyRoleRestrictions(role){
+  // role: 'queued' | 'user' | 'teacher' | 'admin' | null
+  const tabs = document.querySelectorAll('nav button[data-tab]');
+  tabs.forEach(btn => {
+    const tab = btn.dataset.tab;
+    // default hide
+    btn.style.display = 'none';
+    // queued: only home
     if(role === 'queued' || !role){
-      // show only home, hide/disable others except home
-      if(tab === 'home') { b.classList.remove('disabled'); b.style.display='block'; }
-      else { b.classList.add('disabled'); /* optionally hide */ b.style.display='none'; }
-    } else {
-      // show all tabs
-      b.classList.remove('disabled');
-      b.style.display='block';
+      if(tab === 'home') btn.style.display = 'block';
+    }
+    // user: home, sports, matches, live
+    else if(role === 'user'){
+      if(['home','sports','matches','live'].includes(tab)) btn.style.display = 'block';
+    }
+    // teacher: same as user + scoring
+    else if(role === 'teacher'){
+      if(['home','sports','matches','live','scoring'].includes(tab)) btn.style.display = 'block';
+    }
+    // admin: all tabs
+    else if(role === 'admin'){
+      btn.style.display = 'block';
     }
   });
-  // Also ensure currently visible tab is allowed
+
+  // Users tab visibility - only admins
+  try{
+    if(typeof usersTabBtn !== 'undefined' && usersTabBtn){
+      if(role === 'admin') usersTabBtn.style.display = 'block';
+      else usersTabBtn.style.display = 'none';
+    }
+  }catch(e){}
+
+  // ensure current visible tab is allowed
   const active = document.querySelector('.tab[style*="display:block"]');
-  if(role === 'queued' && active && active.id !== 'home'){
-    showTab('home');
+  if(active){
+    const tabBtn = document.querySelector(`nav button[data-tab="${active.id}"]`);
+    if(tabBtn && tabBtn.style.display === 'none'){
+      showTab('home');
+    }
   }
 }
 
+
 /* apply role to UI after sign-in */
+
 function applyRoleToUI(role){
   if(!role) role = null;
   localStorage.setItem('go_currentRole', role || '');
   showUserBadge();
-  restrictUIForRole(role);
+  applyRoleRestrictions(role);
+  // Enable scoring only for teacher and admin
+  const scoringAllowed = (role === 'teacher' || role === 'admin');
+  setScoringEnabled(scoringAllowed);
+}
+
+
+
+function setScoringEnabled(enabled){
+  const controlIds = ['btnStartScoring','incA','decA','incB','decB','undoA','undoB','startCreate','finishMatch','resetMatch','saveProgress'];
+  controlIds.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.disabled = !enabled;
+  });
+  // hide start scoring button for roles without scoring permission
+  const btn = document.getElementById('btnStartScoring');
+  if(btn) btn.style.display = enabled ? 'inline-block' : 'none';
 }
 
 /* On page load, restore session if any in localStorage */
@@ -857,11 +868,11 @@ function applyRoleToUI(role){
     userEmailEl.innerText = email;
     signedInArea.style.display = 'block';
     signedOutArea.style.display = 'none';
-    restrictUIForRole(role || 'queued');
+    applyRoleRestrictions(role || 'queued'); setScoringEnabled(((role || 'queued') === 'teacher' || (role || 'queued') === 'admin')) ;
   } else {
     signedInArea.style.display = 'none';
     signedOutArea.style.display = 'block';
-    restrictUIForRole(null);
+    applyRoleRestrictions(null); setScoringEnabled(((null) === 'teacher' || (null) === 'admin')) ;
   }
 })();
 
