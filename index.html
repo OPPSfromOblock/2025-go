@@ -1960,8 +1960,13 @@ function makeMatchCard(matchObj, matchId, section){
     teamsLine += ` — ${sa} - ${sb}`;
   }
 
+  const supervisorLine = m.referee
+    ? `<div class=\"muted\" style=\"font-size:12px\">Supervised by: ${escapeHtml(m.referee)}</div>`
+    : '';
+
   left.innerHTML = `<div style=\"font-weight:900\">${SPORT_LABEL[m.sport] || m.sport} — ${AGE_LABEL[m.age] || m.age}</div>
                     <div class=\"muted\" style=\"font-size:13px\">${teamsLine}</div>
+                    ${supervisorLine}
                     ${extraLine}`;
   const right = document.createElement('div');
   const badge = document.createElement('div'); badge.className='badge';
@@ -1983,6 +1988,29 @@ function makeMatchCard(matchObj, matchId, section){
 
   el.appendChild(left); el.appendChild(right);
   return el;
+}
+
+// Who can edit a match: only its creator (referee email) or admins
+function canEditMatch(match){
+  if(!match) return false;
+
+  let role = '';
+  let email = '';
+  try{
+    if(typeof getSessionRole === 'function') role = getSessionRole() || '';
+    if(typeof getSessionEmail === 'function') email = getSessionEmail() || '';
+  }catch(e){
+    role = '';
+    email = '';
+  }
+
+  // Admin can edit all matches
+  if((role || '').toLowerCase() === 'admin') return true;
+
+  // Otherwise, only the supervisor (referee email) can edit
+  if(!match.referee) return false;
+  if(!email) return false;
+  return (match.referee || '').toLowerCase() === email.toLowerCase();
 }
 
 // Simple info popup for Matches tab (uses overlay)
@@ -2053,8 +2081,10 @@ function applyFiltersToMatch(matchObj, section){
   if(sportFilter !== 'all' && matchObj.sport !== sportFilter) return false;
   if(ageFilter !== 'all' && matchObj.age !== ageFilter) return false;
 
-  // Scoring tab search
+  // Scoring tab: only show matches the current user can edit (creator) or admin,
+  // and then apply the text search.
   if(section==='scoring'){
+    if(!canEditMatch(matchObj)) return false;
     const q = (document.getElementById('searchScoring')||{value:''}).value.toLowerCase();
     if(q){
       const hay = `${matchObj.teamA} ${matchObj.teamB} ${matchObj.sport} ${matchObj.age}`.toLowerCase();
@@ -2179,8 +2209,18 @@ function renderLiveList(data){
   pageIds.forEach(id=>{
     const m = data[id];
     const el = document.createElement('div'); el.className='match-card';
-    el.innerHTML = `<div><div style=\"font-weight:900\">${SPORT_LABEL[m.sport]||m.sport}</div><div class=\"muted\" style=\"font-size:13px\">${m.teamA} vs ${m.teamB}</div></div>
-                    <div style=\"text-align:right\"><div style=\"font-weight:900;font-size:22px\">${m.scoreA} - ${m.scoreB}</div><div class=\"muted\" style=\"font-size:12px\">${new Date(m.startedAt).toLocaleTimeString()} </div></div>`;
+    const supervisorLine = m.referee
+      ? `<div class=\"muted\" style=\"font-size:12px\">Supervised by: ${escapeHtml(m.referee)}</div>`
+      : '';
+    el.innerHTML = `<div>
+                      <div style=\"font-weight:900\">${SPORT_LABEL[m.sport]||m.sport}</div>
+                      <div class=\"muted\" style=\"font-size:13px\">${m.teamA} vs ${m.teamB}</div>
+                      ${supervisorLine}
+                    </div>
+                    <div style=\"text-align:right\">
+                      <div style=\"font-weight:900;font-size:22px\">${m.scoreA} - ${m.scoreB}</div>
+                      <div class=\"muted\" style=\"font-size:12px\">${new Date(m.startedAt).toLocaleTimeString()} </div>
+                    </div>`;
     // Live tab is read-only but allows viewing details via the info overlay
     el.addEventListener('click', ()=> showMatchInfo(id));
     liveList.appendChild(el);
@@ -2218,6 +2258,12 @@ function createUndoButton(side, parentEl){
 function openScoreSheet(matchId){
   const m = lastMatchSnapshot[matchId];
   if(!m){ alert('Match not found'); return; }
+
+  // Access control: only the match creator (referee email) or admins can edit
+  if(!canEditMatch(m)){
+    alert('You are not allowed to edit this match. Only the supervisor and admins can edit scores.');
+    return;
+  }
 
   // If match is finished, confirm before allowing edits
   if(m.status === 'finished'){
