@@ -1975,12 +1975,38 @@ function makeMatchCard(matchObj, matchId, section){
   else { badge.classList.add('scheduled'); badge.innerText=(m.round||''); }
   right.appendChild(badge);
 
-  // Scoring tab: keep Open. Matches tab: show Info instead.
+  // Read current role once for button logic
+  let role = '';
+  try{
+    if(typeof getSessionRole === 'function') role = (getSessionRole() || '').toLowerCase();
+  }catch(e){ role = ''; }
+
+  // Matches tab: show Info only (view details)
   if(section === 'matches'){
     const btnInfo = document.createElement('button'); btnInfo.className='btn'; btnInfo.style.marginLeft='8px'; btnInfo.innerText='Info';
     btnInfo.addEventListener('click', ()=> showMatchInfo(matchId));
     right.appendChild(btnInfo);
-  } else {
+  }
+  // Scoring tab: allow editing (scores) and team-name changes; admins also get Delete
+  else if(section === 'scoring'){
+    const btnOpen = document.createElement('button'); btnOpen.className='btn'; btnOpen.style.marginLeft='8px'; btnOpen.innerText='Open';
+    btnOpen.addEventListener('click', ()=> openScoreSheet(matchId));
+    right.appendChild(btnOpen);
+
+    // Teachers and admins: rename teams with warning
+    const btnRename = document.createElement('button'); btnRename.className='btn'; btnRename.style.marginLeft='8px'; btnRename.innerText='Edit teams';
+    btnRename.addEventListener('click', ()=> renameTeams(matchId));
+    right.appendChild(btnRename);
+
+    // Admin-only: delete match
+    if(role === 'admin'){
+      const btnDelete = document.createElement('button'); btnDelete.className='btn danger'; btnDelete.style.marginLeft='8px'; btnDelete.innerText='Delete';
+      btnDelete.addEventListener('click', ()=> deleteMatch(matchId));
+      right.appendChild(btnDelete);
+    }
+  }
+  // Fallback (e.g., other sections): basic Open button
+  else {
     const btnOpen = document.createElement('button'); btnOpen.className='btn'; btnOpen.style.marginLeft='8px'; btnOpen.innerText='Open';
     btnOpen.addEventListener('click', ()=> openScoreSheet(matchId));
     right.appendChild(btnOpen);
@@ -2011,6 +2037,76 @@ function canEditMatch(match){
   if(!match.referee) return false;
   if(!email) return false;
   return (match.referee || '').toLowerCase() === email.toLowerCase();
+}
+
+// Rename teams (Team A / Team B) for a match.
+// Allowed for: match creator (teacher) and admin. Shows a warning before changing.
+function renameTeams(matchId){
+  const m = lastMatchSnapshot[matchId];
+  if(!m){ alert('Match not found'); return; }
+  if(!canEditMatch(m)){
+    alert('You are not allowed to edit this match.');
+    return;
+  }
+
+  const proceed = confirm('WARNING: Changing team names will update this match everywhere (Scoring, Matches, Live). Continue?');
+  if(!proceed) return;
+
+  const currentA = m.teamA || 'Team A';
+  const currentB = m.teamB || 'Team B';
+  const newA = prompt('Enter new name for Team A:', currentA);
+  if(newA === null) return; // cancel
+  const newB = prompt('Enter new name for Team B:', currentB);
+  if(newB === null) return; // cancel
+
+  const finalA = (newA || '').trim();
+  const finalB = (newB || '').trim();
+  if(!finalA || !finalB){
+    alert('Team names cannot be empty.');
+    return;
+  }
+
+  const ref = rtdb.ref(`matches/${matchId}`);
+  ref.transaction(match=>{
+    if(!match) return match;
+    match.teamA = finalA;
+    match.teamB = finalB;
+    match.events = match.events || [];
+    match.events.unshift(`${(new Date()).toLocaleTimeString()} — Teams renamed to: ${finalA} vs ${finalB}`);
+    match.updatedAt = Date.now();
+    return match;
+  }, function(err){
+    if(err){ console.error('renameTeams failed', err); alert('Failed to update team names.'); }
+  });
+}
+
+// Delete a match (admin only) from RTDB
+function deleteMatch(matchId){
+  let role = '';
+  try{
+    if(typeof getSessionRole === 'function') role = (getSessionRole() || '').toLowerCase();
+  }catch(e){ role = ''; }
+
+  if(role !== 'admin'){
+    alert('Only admins can delete matches.');
+    return;
+  }
+
+  if(!confirm('Are you sure you want to permanently delete this match? This cannot be undone.')) return;
+
+  // If this match is currently open in the score sheet, close it after delete
+  const wasActive = (activeMatchId === matchId);
+
+  rtdb.ref(`matches/${matchId}`).remove().then(()=>{
+    if(wasActive){
+      const sheet = document.getElementById('scoreSheet');
+      if(sheet) sheet.classList.remove('show');
+      activeMatchId = null;
+    }
+  }).catch(err=>{
+    console.error('deleteMatch failed', err);
+    alert('Failed to delete match.');
+  });
 }
 
 // Simple info popup for Matches tab (uses overlay)
