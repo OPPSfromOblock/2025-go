@@ -328,6 +328,32 @@
     color:var(--accent);
     font-weight:900;
     letter-spacing:0.02em;
+    transform-origin:left center;
+    transition:transform 0.28s cubic-bezier(0.22,0.61,0.36,1), opacity 0.28s ease;
+  }
+  body.tab-changed header h1{
+    transform:translateY(-4px) scale(0.9);
+    opacity:0.9;
+  }
+
+  /* Animated tab content like iOS page transitions */
+  .tab{
+    opacity:0;
+    transform:translateY(12px);
+    transition:opacity 0.25s ease,transform 0.25s ease;
+    pointer-events:none;
+    display:none;
+  }
+  .tab.tab-active{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+    display:block;
+  }
+  .tab.tab-hidden{
+    opacity:0;
+    pointer-events:none;
+    display:none;
   }
 
   .card{
@@ -361,6 +387,108 @@
     flex-direction:column;
     gap:14px;
     justify-content:space-between;
+  }
+
+  /* Home bottom symbol (U-track + red ball) */
+  .home-symbol-wrapper{
+    margin-top:32px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
+    pointer-events:none;
+  }
+  .home-symbol{
+    position:relative;
+    width:72px;
+    height:180px;
+  }
+  .home-symbol-track{
+    position:absolute;
+    inset:0;
+    border-radius:0 0 40px 40px; /* straight at top, curved only at bottom */
+    border:10px solid var(--accent); /* red outer line */
+    border-top:0; /* no top stroke */
+    box-shadow:0 10px 24px rgba(15,23,42,0.45);
+    background:transparent;
+  }
+  .home-symbol-ball{
+    position:absolute;
+    left:50%;
+    bottom:38px;
+    width:40px;
+    height:40px;
+    margin-left:-20px;
+    border-radius:999px;
+    background:#c8102e;
+    box-shadow:0 10px 20px rgba(15,23,42,0.45);
+  }
+
+  /* Home footer text block */
+  .home-footer{
+    margin-top:32px;
+    margin-bottom:24px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    text-align:center;
+    font-size:13px;
+  }
+  .home-footer-line{
+    color:var(--muted);
+  }
+  .home-footer-link{
+    color:var(--accent);
+    text-decoration:none;
+    font-weight:600;
+  }
+  .home-footer-link:hover{
+    text-decoration:underline;
+  }
+
+  /* Footer appearing animation (2s) when Home tab is shown */
+  #homeFooter.home-footer-animate .home-footer-line,
+  #homeFooter.home-footer-animate .home-footer-link{
+    animation:homeFooterFade 2s ease-out forwards;
+  }
+  @keyframes homeFooterFade{
+    0%{
+      opacity:0;
+      transform:translateY(40px);
+      filter:blur(6px);
+    }
+    100%{
+      opacity:1;
+      transform:translateY(0);
+      filter:blur(0);
+    }
+  }
+
+  /* Entry animation: slide up from below screen over ~4.23s when home tab becomes active */
+  #homeSymbol.home-symbol-animate .home-symbol{
+    animation:homeSymbolFade 4.23s cubic-bezier(0.22,0.7,0.25,1) forwards;
+  }
+  @keyframes homeSymbolFade{
+    0%{
+      opacity:0;
+      transform:translateY(120px);
+      filter:blur(10px);
+    }
+    40%{
+      opacity:0.8;
+      transform:translateY(20px);
+      filter:blur(3px);
+    }
+    70%{
+      opacity:1;
+      transform:translateY(-4px);
+      filter:blur(1px);
+    }
+    100%{
+      opacity:1;
+      transform:translateY(0);
+      filter:blur(0);
+    }
   }
   .pill-tag{
     display:inline-flex;
@@ -416,11 +544,17 @@
     box-shadow:0 8px 24px rgba(15,23,42,0.08);
     position:relative;
     overflow:hidden;
+    transition:transform 0.22s ease,box-shadow 0.22s ease,background 0.22s ease;
+    cursor:default;
   }
   .stat-card::before{
     content:"";
     position:absolute;
     inset:auto;
+  }
+  .stat-card:hover{
+    transform:translateY(-6px) scale(1.02);
+    box-shadow:0 18px 40px rgba(15,23,42,0.18);
   }
   .stat-value{
     font-size:22px;
@@ -442,6 +576,11 @@
     position:relative;
     overflow:hidden;
     color:var(--text);
+    transition:transform 0.22s ease,box-shadow 0.22s ease;
+  }
+  .quote-card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 22px 48px rgba(15,23,42,0.2);
   }
   .quote-card::after{
     content:"";
@@ -461,8 +600,20 @@
     line-height:1.3;
     color:var(--accent);
   }
+  .home-hero-left .home-title{
+    transition:transform 0.22s ease, text-shadow 0.22s ease;
+  }
+  .home-hero-left:hover .home-title{
+    transform:translateY(-4px);
+    text-shadow:0 6px 18px rgba(15,23,42,0.25);
+  }
+  .home-hero-right .quote-card:hover .quote-text{
+    transform:translateY(-2px);
+  }
+
   .orbit-wrapper{
     position:relative;
+    width:140px;
     height:140px;
     margin-top:8px;
   }
@@ -474,12 +625,25 @@
   }
   .orbit-dot{
     position:absolute;
-    width:10px;height:10px;border-radius:999px;
+    top:50%;
+    left:50%;
+    width:10px;
+    height:10px;
+    border-radius:999px;
     background:var(--accent);
+    /* center the dot on the middle of the ring */
+    margin-top:-5px;
+    margin-left:-5px;
+    transform-origin:50% 50%;
+    animation:orbit 6s cubic-bezier(0.4,0,0.2,1) infinite;
   }
+  /* Rotate around the ring radius using rotate+translateY so path is a perfect circle */
   @keyframes orbit{
-    0%{transform:rotate(0deg) translateX(60px);} 
-    100%{transform:rotate(360deg) translateX(60px);} 
+    0%   { transform:rotate(-90deg) translateY(-48px); }
+    25%  { transform:rotate(0deg)   translateY(-48px); }
+    50%  { transform:rotate(90deg)  translateY(-48px); }
+    75%  { transform:rotate(180deg) translateY(-48px); }
+    100% { transform:rotate(270deg) translateY(-48px); }
   }
 
   /* Form & controls */
@@ -692,6 +856,14 @@
     box-shadow:0 24px 70px rgba(15,23,42,0.25);
     color:var(--text);
   }
+
+  /* Make walkthrough overlay fit nicely on all screens */
+  #walkthroughOverlay .pwbox{
+    width:92vw;
+    max-width:480px;
+    max-height:80vh;
+    overflow-y:auto;
+  }
   .pwbox h2{color:var(--accent);margin-bottom:8px}
   .pwbox input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(209,213,219,1);margin-top:6px;background:#f9fafb;color:var(--text);}
   .small-muted{font-size:13px;color:var(--muted)}
@@ -779,6 +951,7 @@
     <button data-tab="scoring">Scoring</button>
     <button data-tab="matches">Matches</button>
     <button data-tab="live">Live</button>
+    <button data-tab="about">About</button>
     <button data-tab="users">Users</button>
     <div class="grow"></div>
 
@@ -812,12 +985,11 @@
       <button id="hamburgerBtn" class="hamburger-btn" aria-label="Toggle navigation">☰</button>
       <h1>GO 2025 — Scoring</h1>
     </div>
-    <div class="muted">• Realtime DB • SPA</div>
   </header>
 
   <div style="height:14px"></div>
 
-  <section id="home" class="card tab" style="display:block">
+  <section id="home" class="card tab tab-active">
     <div class="home-hero">
       <div class="home-hero-left">
         <div class="pill-tag">
@@ -859,7 +1031,15 @@
     </div>
   </section>
 
-  <section id="sports" class="tab" style="display:none">
+  <!-- Bottom symbol: U-shaped track with red ball, animates in when Home tab is shown -->
+  <div id="homeSymbol" class="home-symbol-wrapper">
+    <div class="home-symbol">
+      <div class="home-symbol-track"></div>
+      <div class="home-symbol-ball"></div>
+    </div>
+  </div>
+
+  <section id="sports" class="tab tab-hidden">
     <div class="card">
       <h2>All Sports</h2>
       <p class="muted">Select a sport while starting scoring.</p>
@@ -867,7 +1047,7 @@
     </div>
   </section>
 
-  <section id="scoring" class="tab" style="display:none">
+  <section id="scoring" class="tab tab-hidden">
     <div class="card">
       <h2>Scoring Hub</h2>
       <div style="display:flex;gap:10px;align-items:center;margin-top:10px">
@@ -890,7 +1070,7 @@
     </div>
   </section>
 
-  <section id="matches" class="tab" style="display:none">
+  <section id="matches" class="tab tab-hidden">
     <div class="card">
       <h2>Matches</h2>
       <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
@@ -912,7 +1092,7 @@
     </div>
   </section>
 
-  <section id="live" class="tab" style="display:none">
+  <section id="live" class="tab tab-hidden">
     <div class="card">
       <h2>Live Matches</h2>
       <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
@@ -926,19 +1106,72 @@
     </div>
   </section>
 
-  <section id="users" class="tab" style="display:none">
+  <section id="users" class="tab tab-hidden">
     <div class="card">
       <h2>Users</h2>
       <div id="usersAdminArea" style="margin-top:8px"></div>
-      <h3 style="margin-top:12px">Pending Users</h3>
-      <div id="pendingList" style="margin-bottom:12px"></div>
-      <h3>Whitelisted Users</h3>
-      <div id="whitelistList"></div>
+
+      <!-- Subview selector: Pending / Whitelisted / All -->
+      <div style="margin-top:8px;margin-bottom:4px;display:flex;align-items:center;gap:8px;font-size:13px;">
+        <span class="muted">View:</span>
+        <select id="usersViewSelect" style="padding:6px 8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)">
+          <option value="all">All (pending + whitelisted)</option>
+          <option value="pending">Pending only</option>
+          <option value="whitelist">Whitelisted only</option>
+        </select>
+      </div>
+
+      <div id="pendingSection">
+        <h3 style="margin-top:8px">Pending Users</h3>
+        <div id="pendingList" style="margin-bottom:12px"></div>
+      </div>
+
+      <div id="whitelistSection">
+        <h3>Whitelisted Users</h3>
+        <div id="whitelistControls" style="margin:4px 0 6px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;">
+          <input id="whitelistSearch" placeholder="Search by name or email" style="flex:1;min-width:200px;padding:6px 8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)" />
+          <select id="whitelistRoleFilter" style="padding:6px 8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)">
+            <option value="all">All roles</option>
+            <option value="user">user</option>
+            <option value="teacher">teacher</option>
+            <option value="admin">admin</option>
+          </select>
+          <select id="whitelistValidityFilter" style="padding:6px 8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)">
+            <option value="all">All emails</option>
+            <option value="valid">Valid only</option>
+            <option value="invalid">Invalid only</option>
+          </select>
+          <select id="whitelistSort" style="padding:6px 8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)">
+            <option value="name">Sort by name</option>
+            <option value="email">Sort by email</option>
+            <option value="role">Sort by role</option>
+          </select>
+        </div>
+        <div id="whitelistList"></div>
+      </div>
     </div>
   </section>
 
-  <div style="height:24px"></div>
-  <footer class="muted">Made for GO 2025 • Red & White theme</footer>
+  <section id="about" class="tab tab-hidden">
+    <div class="card">
+      <h2>About &amp; Help</h2>
+      <p class="muted">Official scoring app for Gurukul Olympics 2025 (#GO2025#).</p>
+      <p style="margin-top:8px;font-size:14px">
+        If you face any problems or have questions, please contact:
+        <a href="mailto:researchinnovation003@gmail.com">researchinnovation003@gmail.com</a>
+      </p>
+    </div>
+  </section>
+
+  <div id="homeFooter" class="home-footer">
+    <div class="home-footer-line">Made for GO-2025</div>
+    <a href="mailto:researchinnovation003@gmail.com" class="home-footer-link">
+      Queries &amp; support: researchinnovation003@gmail.com
+    </a>
+    <a href="https://gurukul.org" target="_blank" rel="noopener noreferrer" class="home-footer-link">
+      About us: gurukul.org
+    </a>
+  </div>
 </div>
 
 <div id="startModal" class="modal" role="dialog" aria-modal="true">
@@ -1067,6 +1300,19 @@
   </div>
 </div>
 
+<!-- First-time walkthrough overlay -->
+<div class="overlay" id="walkthroughOverlay" style="display:none">
+  <div class="pwbox card" style="text-align:left;">
+    <h2 id="walkTitle" style="margin-bottom:8px;color:var(--accent)">Jay Swaminarayan</h2>
+    <div id="walkBody" style="font-size:14px;line-height:1.5"></div>
+    <div style="height:12px"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px">
+      <button id="walkSkip" class="btn ghost">Skip</button>
+      <button id="walkNext" class="btn primary">Next</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="authOverlay" style="display:none">
   <div class="pwbox card" style="text-align:left;max-width:420px">
     <img alt="logo" src="" style="height:48px;margin-bottom:8px"/>
@@ -1164,6 +1410,14 @@ const matchInfoTitle = document.getElementById('matchInfoTitle');
 const matchInfoMeta = document.getElementById('matchInfoMeta');
 const matchInfoContent = document.getElementById('matchInfoContent');
 const matchInfoClose = document.getElementById('matchInfoClose');
+
+// Walkthrough overlay elements
+const walkthroughOverlay = document.getElementById('walkthroughOverlay');
+const walkTitle = document.getElementById('walkTitle');
+const walkBody = document.getElementById('walkBody');
+const walkNext = document.getElementById('walkNext');
+const walkSkip = document.getElementById('walkSkip');
+
 const tabRegister = document.getElementById('tabRegister');
 const tabLogin = document.getElementById('tabLogin');
 
@@ -1240,6 +1494,19 @@ const usersTabBtn = document.querySelector('nav button[data-tab="users"]');
 const pendingList = document.getElementById('pendingList');
 const whitelistList = document.getElementById('whitelistList');
 const usersAdminArea = document.getElementById('usersAdminArea');
+const usersViewSelect = document.getElementById('usersViewSelect');
+const pendingSection = document.getElementById('pendingSection');
+const whitelistSection = document.getElementById('whitelistSection');
+
+// Whitelist filter/sort controls
+const whitelistSearchInput = document.getElementById('whitelistSearch');
+const whitelistRoleFilterSelect = document.getElementById('whitelistRoleFilter');
+const whitelistSortSelect = document.getElementById('whitelistSort');
+const whitelistValidityFilterSelect = document.getElementById('whitelistValidityFilter');
+let whitelistSearchText = '';
+let whitelistRoleFilterValue = 'all';
+let whitelistValidityFilterValue = 'all';
+let whitelistSortBy = 'name';
 
 /* =========================
    Utility helpers
@@ -1247,11 +1514,133 @@ const usersAdminArea = document.getElementById('usersAdminArea');
 function encodeEmailKey(email){ return encodeURIComponent((email||'').toLowerCase()); }
 function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+// Walkthrough helpers (per email)
+function walkthroughKeyFor(email){
+  return 'go_walkthrough_' + encodeEmailKey(email || '');
+}
+function hasSeenWalkthrough(email){
+  try{
+    return localStorage.getItem(walkthroughKeyFor(email)) === '1';
+  }catch(e){ return false; }
+}
+function markWalkthroughSeen(email){
+  try{
+    localStorage.setItem(walkthroughKeyFor(email), '1');
+  }catch(e){}
+}
+
+let walkthroughStep = 0;
+function startWalkthrough(){
+  if(!walkthroughOverlay || !walkTitle || !walkBody || !walkNext) return;
+  walkthroughStep = 0;
+  updateWalkthroughStep();
+  walkthroughOverlay.style.display = 'flex';
+}
+function updateWalkthroughStep(){
+  if(!walkthroughOverlay || !walkTitle || !walkBody || !walkNext) return;
+  if(walkthroughStep === 0){
+    walkTitle.textContent = 'Jay Swaminarayan';
+    walkBody.innerHTML = 'Welcome to Gurukul Olympics 2025!<br/><br/>' +
+      'I will guide you through the official scoring app of <strong>#GO2025#</strong>. Let\'s start.';
+    walkNext.textContent = 'Next';
+  } else if(walkthroughStep === 1){
+    walkTitle.textContent = 'App overview';
+    walkBody.innerHTML = 'Use the sidebar tabs to explore:<br/>' +
+      '<strong>Home</strong> – summary and intro.<br/>' +
+      '<strong>Sports</strong> – list of all events.<br/>' +
+      '<strong>Scoring</strong> – create and update live matches.<br/>' +
+      '<strong>Matches</strong> – browse all results.<br/>' +
+      '<strong>Live</strong> – see ongoing matches.<br/>' +
+      '<strong>Users</strong> – admin-only user management.';
+    walkNext.textContent = 'Next';
+  } else if(walkthroughStep === 2){
+    walkTitle.textContent = 'Need help?';
+    walkBody.innerHTML = 'If you face any problems or have questions, please contact:<br/>' +
+      '<a href="mailto:researchinnovation003@gmail.com">researchinnovation003@gmail.com</a>.';
+    walkNext.textContent = 'Finish';
+  } else {
+    walkthroughOverlay.style.display = 'none';
+  }
+}
+
+if(walkNext){
+  walkNext.addEventListener('click', ()=>{
+    walkthroughStep += 1;
+    updateWalkthroughStep();
+  });
+}
+if(walkSkip){
+  walkSkip.addEventListener('click', ()=>{
+    walkthroughOverlay.style.display = 'none';
+  });
+}
+
+function maybeShowWalkthrough(email){
+  if(!email) return;
+  if(hasSeenWalkthrough(email)) return;
+  startWalkthrough();
+  markWalkthroughSeen(email);
+}
+
+// Users view selector (Pending / Whitelisted / All)
+if(usersViewSelect && pendingSection && whitelistSection){
+  usersViewSelect.addEventListener('change', ()=>{
+    const v = usersViewSelect.value || 'all';
+    if(v === 'pending'){
+      pendingSection.style.display = 'block';
+      whitelistSection.style.display = 'none';
+    } else if(v === 'whitelist'){
+      pendingSection.style.display = 'none';
+      whitelistSection.style.display = 'block';
+    } else {
+      pendingSection.style.display = 'block';
+      whitelistSection.style.display = 'block';
+    }
+  });
+}
+
+// Wire whitelist filter/sort controls
+if(whitelistSearchInput){
+  whitelistSearchInput.addEventListener('input', ()=>{
+    whitelistSearchText = whitelistSearchInput.value || '';
+    refreshUsersLists();
+  });
+}
+if(whitelistRoleFilterSelect){
+  whitelistRoleFilterSelect.addEventListener('change', ()=>{
+    whitelistRoleFilterValue = whitelistRoleFilterSelect.value || 'all';
+    refreshUsersLists();
+  });
+}
+if(whitelistValidityFilterSelect){
+  whitelistValidityFilterSelect.addEventListener('change', ()=>{
+    whitelistValidityFilterValue = whitelistValidityFilterSelect.value || 'all';
+    refreshUsersLists();
+  });
+}
+if(whitelistSortSelect){
+  whitelistSortSelect.addEventListener('change', ()=>{
+    whitelistSortBy = whitelistSortSelect.value || 'name';
+    refreshUsersLists();
+  });
+}
+
 /* =========================
    Whitelist / Pending helpers (Firestore)
    registeredUsers collection: doc id = encodeURIComponent(email)
    pendingUsers collection: doc id = encodeURIComponent(email)
 */
+function isValidWhitelistEmail(email){
+  if(!email) return false;
+  const e = email.toString().trim().toLowerCase();
+  // Basic pattern: something@something.tld
+  const basic = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
+  if(!basic) return false;
+  // Allow common TLDs like .com, .org, .net, .edu, .gov, .info, .io, .in, etc.
+  const allowedTlds = ['.com','.org','.net','.edu','.gov','.info','.io','.in'];
+  return allowedTlds.some(tld => e.endsWith(tld));
+}
+
 async function isWhitelisted(email){
   if(!email) return false;
   const doc = await db.collection('registeredUsers').doc(encodeEmailKey(email)).get();
@@ -1271,18 +1660,39 @@ async function loadUsersTab(){
   if(curRole === 'admin'){
     const row = document.createElement('div');
     row.innerHTML = `
-      <div style="display:flex;gap:8px;align-items:center">
-        <input id="whitelistEmailInput" placeholder="Enter email to whitelist (admin-only)" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)"/>
-        <select id="whitelistRoleSelect" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);margin-left:6px">
-          <option value="user">user</option>
-          <option value="teacher">teacher</option>
-          <option value="admin">admin</option>
-        </select>
-        <button id="addWhitelistBtn" class="btn primary">Add</button>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px">
+        <!-- Single email quick add -->
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input id="whitelistEmailInput" placeholder="Enter one email to whitelist" style="flex:1;min-width:220px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)"/>
+          <select id="whitelistRoleSelect" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);min-width:120px">
+            <option value="user">user</option>
+            <option value="teacher">teacher</option>
+            <option value="admin">admin</option>
+          </select>
+          <button id="addWhitelistBtn" class="btn primary">Add</button>
+        </div>
+
+        <!-- Bulk add multiple emails with same role -->
+        <div style="margin-top:6px;font-size:13px;font-weight:600;color:#374151;">
+          Bulk management
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">
+          <textarea id="bulkWhitelistEmails" placeholder="Paste multiple emails (comma, space, or new line separated)" style="flex:2;min-width:260px;min-height:80px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);"></textarea>
+          <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:6px">
+            <select id="bulkWhitelistRoleSelect" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)">
+              <option value="user">user</option>
+              <option value="teacher">teacher</option>
+              <option value="admin">admin</option>
+            </select>
+            <button id="addBulkWhitelistBtn" class="btn primary">Add bulk</button>
+          </div>
+        </div>
       </div>
-      <div id="addWhitelistMsg" style="margin-top:8px"></div>
+      <div id="addWhitelistMsg" style="margin-top:4px;font-size:13px"></div>
     `;
     usersAdminArea.appendChild(row);
+
+    // Single email add
     document.getElementById('addWhitelistBtn').addEventListener('click', async ()=>{
       const em = (document.getElementById('whitelistEmailInput').value||'').trim().toLowerCase();
       const role = document.getElementById('whitelistRoleSelect').value || 'user';
@@ -1295,15 +1705,68 @@ async function loadUsersTab(){
           role: role,
           createdAt: new Date().toISOString(),
           manualWhitelistBy: (getSessionEmail()||'system')
-        });
+        }, { merge:true });
         m.innerText = `Whitelisted ${em} as ${role}.`;
+        document.getElementById('whitelistEmailInput').value='';
         await refreshUsersLists();
       }catch(e){ m.innerText = 'Failed. See console.'; console.error(e); }
     });
+
+    // Bulk add multiple emails with same role
+    const bulkBtn = document.getElementById('addBulkWhitelistBtn');
+    if(bulkBtn){
+      bulkBtn.addEventListener('click', async ()=>{
+        const raw = (document.getElementById('bulkWhitelistEmails').value||'');
+        const role = document.getElementById('bulkWhitelistRoleSelect').value || 'user';
+        const m = document.getElementById('addWhitelistMsg');
+        m.innerText = '';
+
+        const parts = raw.split(/[\n,;\s]+/).map(x=>x.trim().toLowerCase()).filter(x=>x.includes('@'));
+        const uniqueEmails = Array.from(new Set(parts));
+        if(uniqueEmails.length === 0){
+          m.innerText = 'Enter at least one valid email.';
+          return;
+        }
+
+        try{
+          const batch = db.batch();
+          const nowIso = new Date().toISOString();
+          const by = getSessionEmail() || 'system';
+          uniqueEmails.forEach(em=>{
+            const ref = db.collection('registeredUsers').doc(encodeEmailKey(em));
+            batch.set(ref, {
+              email: em,
+              role: role,
+              createdAt: nowIso,
+              manualWhitelistBy: by
+            }, { merge:true });
+          });
+          await batch.commit();
+          m.innerText = `Whitelisted ${uniqueEmails.length} email(s) as ${role}.`;
+          document.getElementById('bulkWhitelistEmails').value='';
+          await refreshUsersLists();
+        }catch(e){
+          console.error(e);
+          m.innerText = 'Bulk whitelist failed. See console.';
+        }
+      });
+    }
   }
 
   pendingList.innerHTML = 'Loading...'; whitelistList.innerHTML = 'Loading...';
   await refreshUsersLists();
+}
+
+// Ensure admin sees user lists + admin/bulk UI whenever opening the Users tab
+if(usersTabBtn){
+  usersTabBtn.addEventListener('click', async ()=>{
+    try{
+      const role = getSessionRole && getSessionRole();
+      if(role === 'admin'){
+        await loadUsersTab();
+      }
+    }catch(e){ console.error('Failed to load users tab', e); }
+  });
 }
 async function refreshUsersLists(){
   const pSnap = await db.collection('pendingUsers').get();
@@ -1329,30 +1792,102 @@ async function refreshUsersLists(){
     </div>`;
   }).join('');
 
-  if(wSnap.empty) whitelistList.innerHTML = '<div class="muted">No whitelisted users</div>';
-  else whitelistList.innerHTML = wSnap.docs.map(d=>{
-    const data = d.data();
-    const em = escapeHtml(data.email || d.id);
-    const roleRaw = data.role || 'user';
-    const role = escapeHtml(roleRaw);
-    const idSafe = d.id;
-    return `<div style="margin:6px 0;padding:8px;background:#f4f4f4;border-radius:6px;display:flex;flex-direction:column;gap:6px;width:100%;box-sizing:border-box">
-      <div style="font-weight:800;display:flex;flex-wrap:wrap;align-items:center;gap:6px">
-        <span>${em}</span>
-        <span style="font-size:12px;padding:2px 8px;border-radius:999px;background:rgba(0,0,0,0.04);color:#374151">${role}</span>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px">
-        <span class="muted">Change to:</span>
-        <select id="wlRole-${idSafe}" style="padding:4px 6px;border-radius:6px;border:1px solid rgba(0,0,0,0.06);font-size:12px">
-          <option value="user" ${roleRaw==='user'?'selected':''}>user</option>
-          <option value="teacher" ${roleRaw==='teacher'?'selected':''}>teacher</option>
-          <option value="admin" ${roleRaw==='admin'?'selected':''}>admin</option>
-        </select>
-        <button class="btn" style="padding:4px 10px;font-size:12px" onclick="updateWhitelistRole('${idSafe}')">Update</button>
-        <button class=\"btn danger\" style="padding:4px 10px;font-size:12px" onclick=\"removeWhitelist('${idSafe}')\">Remove</button>
-      </div>
-    </div>`;
-  }).join('');
+  if(wSnap.empty) {
+    whitelistList.innerHTML = '<div class="muted">No whitelisted users</div>';
+  } else {
+    // Build array for filtering/sorting
+    let users = wSnap.docs.map(d=>{
+      const data = d.data();
+      const emailRaw = (data.email || d.id || '').toString();
+      const displayNameRaw = (data.displayName || emailRaw || '').toString();
+      const displayName = displayNameRaw.split('@')[0] || displayNameRaw || emailRaw;
+      const roleRaw = (data.role || 'user').toString();
+      const isValid = isValidWhitelistEmail(emailRaw);
+      return {
+        id: d.id,
+        emailRaw,
+        displayName,
+        roleRaw,
+        isValid
+      };
+    });
+
+    // Apply role filter
+    if(whitelistRoleFilterValue && whitelistRoleFilterValue !== 'all'){
+      users = users.filter(u => u.roleRaw === whitelistRoleFilterValue);
+    }
+
+    // Apply validity filter
+    if(whitelistValidityFilterValue === 'valid'){
+      users = users.filter(u => u.isValid);
+    } else if(whitelistValidityFilterValue === 'invalid'){
+      users = users.filter(u => !u.isValid);
+    }
+
+    // Apply search filter (name or email)
+    const q = (whitelistSearchText || '').trim().toLowerCase();
+    if(q){
+      users = users.filter(u => (
+        (u.displayName || '').toLowerCase().includes(q) ||
+        (u.emailRaw || '').toLowerCase().includes(q)
+      ));
+    }
+
+    // Apply sort
+    users.sort((a,b)=>{
+      const by = whitelistSortBy || 'name';
+      if(by === 'email'){
+        return a.emailRaw.localeCompare(b.emailRaw) || a.displayName.localeCompare(b.displayName);
+      } else if(by === 'role'){
+        return a.roleRaw.localeCompare(b.roleRaw) || a.emailRaw.localeCompare(b.emailRaw);
+      } else { // name
+        return a.displayName.localeCompare(b.displayName) || a.emailRaw.localeCompare(b.emailRaw);
+      }
+    });
+
+    const rows = users.map(u=>{
+      const em = escapeHtml(u.emailRaw);
+      const displayNameEsc = escapeHtml(u.displayName);
+      const roleRaw = u.roleRaw;
+      const idSafe = u.id;
+      const emailStyle = u.isValid
+        ? 'padding:8px 6px;'
+        : 'padding:8px 6px;color:#b91c1c;font-weight:600;';
+      const emailLabel = u.isValid ? '' : ' <span style="font-size:11px;color:#b91c1c;">(invalid syntax)</span>';
+      return `<tr style="border-bottom:1px solid #e5e7eb;">
+        <td style="padding:8px 6px;font-weight:600;white-space:nowrap;">${displayNameEsc}</td>
+        <td style="${emailStyle}">${em}${emailLabel}</td>
+        <td style="padding:8px 6px;">
+          <select id="wlRole-${idSafe}" style="padding:4px 6px;border-radius:6px;border:1px solid rgba(0,0,0,0.06);font-size:12px">
+            <option value="user" ${roleRaw==='user'?'selected':''}>user</option>
+            <option value="teacher" ${roleRaw==='teacher'?'selected':''}>teacher</option>
+            <option value="admin" ${roleRaw==='admin'?'selected':''}>admin</option>
+          </select>
+        </td>
+        <td style="padding:8px 6px;white-space:nowrap;">
+          <button class="btn" style="padding:4px 10px;font-size:12px;margin-right:4px" onclick="updateWhitelistRole('${idSafe}')">Update</button>
+          <button class="btn danger" style="padding:4px 10px;font-size:12px" onclick="removeWhitelist('${idSafe}')">Remove</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    whitelistList.innerHTML = `
+      <div style="margin-top:10px;overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:520px;">
+          <thead>
+            <tr style="background:#f9fafb;">
+              <th style="text-align:left;padding:8px 6px;border-bottom:1px solid #e5e7eb;font-weight:600;">Name</th>
+              <th style="text-align:left;padding:8px 6px;border-bottom:1px solid #e5e7eb;font-weight:600;">Email</th>
+              <th style="text-align:left;padding:8px 6px;border-bottom:1px solid #e5e7eb;font-weight:600;">Role</th>
+              <th style="text-align:left;padding:8px 6px;border-bottom:1px solid #e5e7eb;font-weight:600;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      </div>`;
+  }
 }
 
 window.approveUser = async function(id){
@@ -1501,6 +2036,7 @@ codeAccessBtn.addEventListener('click', async ()=>{
   applyRoleToUI('admin');
   showUserBadge();
   await loadUsersTab();
+  maybeShowWalkthrough(email);
 });
 
 // Handle passwordless email sign-in completion (if page loaded from email link)
@@ -1595,6 +2131,7 @@ async function showSignedInUIForEmail(email){
     applyRoleToUI(role);
     if(role === 'admin') await loadUsersTab();
     authOverlay.style.display = 'none';
+    maybeShowWalkthrough(email);
   }catch(e){ console.error(e); alert('Sign-in succeeded but something failed. See console.'); }
 }
 
@@ -1643,13 +2180,13 @@ function restrictUIForRole(role){
   // Determine allowed tabs for this role
   let allowedTabs = [];
   if(normalized === 'admin'){
-    allowedTabs = ['home','sports','scoring','matches','live','users'];
+    allowedTabs = ['home','sports','scoring','matches','live','users','about'];
   } else if(normalized === 'teacher'){
-    allowedTabs = ['home','sports','scoring','matches','live'];
+    allowedTabs = ['home','sports','scoring','matches','live','about'];
   } else if(normalized === 'user'){
-    allowedTabs = ['home','live','matches'];
-  } else { // queued or unknown => only home
-    allowedTabs = ['home'];
+    allowedTabs = ['home','live','matches','about'];
+  } else { // queued or unknown => only home + about
+    allowedTabs = ['home','about'];
   }
 
   const nav = document.querySelectorAll('.sidebar nav button[data-tab]');
@@ -1718,6 +2255,7 @@ auth.onAuthStateChanged(async user=>{
     updateSignedInSignedOutUI(true);
     applyRoleToUI(role);
     if(role === 'admin') await loadUsersTab();
+    maybeShowWalkthrough(email);
   } else {
     // not signed in
     // do nothing here — we may have local session via bypass code
@@ -1763,12 +2301,48 @@ const tabs = document.querySelectorAll('nav button[data-tab], .bottom-tabs butto
 document.querySelectorAll('nav button[data-tab]').forEach(btn=>{
   btn.addEventListener('click',()=>{
     if(btn.classList.contains('disabled')) return;
+
+    // Animate title like iOS: brief scale/slide on tab change
+    document.body.classList.add('tab-changed');
+    setTimeout(()=>{ document.body.classList.remove('tab-changed'); }, 260);
+
+    // Update active state on nav buttons
     document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    btn.setAttribute('aria-current','page');
     btn.classList.add('active');
+
     const t = btn.dataset.tab;
-    document.querySelectorAll('.tab').forEach(sec=>sec.style.display='none');
-    const s = document.getElementById(t);
-    if(s) s.style.display='block';
+    document.querySelectorAll('.tab').forEach(sec=>{
+      if(sec.id === t){
+        sec.classList.add('tab-active');
+        sec.classList.remove('tab-hidden');
+      } else {
+        sec.classList.remove('tab-active');
+        sec.classList.add('tab-hidden');
+      }
+    });
+
+    // Show symbol only on Home tab and restart its animation when Home is activated
+    const hs = document.getElementById('homeSymbol');
+    if(hs){
+      if(t === 'home'){
+        hs.style.display = 'flex';
+        hs.classList.remove('home-symbol-animate');
+        void hs.offsetWidth; // force reflow to restart animation
+        hs.classList.add('home-symbol-animate');
+      } else {
+        hs.style.display = 'none';
+      }
+    }
+
+    // Trigger home footer animation when Home tab is activated
+    const hf = document.getElementById('homeFooter');
+    if(hf && t === 'home'){
+      hf.classList.remove('home-footer-animate');
+      void hf.offsetWidth;
+      hf.classList.add('home-footer-animate');
+    }
+
     // Close mobile sidebar after navigation
     if(window.innerWidth <= 900 && sidebarEl){
       sidebarEl.classList.remove('mobile-open');
